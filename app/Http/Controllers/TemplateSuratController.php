@@ -76,4 +76,5 @@ class TemplateSuratController extends Controller
 
         return redirect()->route('surats.index')->with('success', 'Surat berhasil dihapus');
     }
+    
 }

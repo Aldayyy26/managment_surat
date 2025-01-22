@@ -2,13 +2,11 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\kpiController;
-use App\Http\Controllers\UserController;
 use App\Http\Controllers\FrontController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ApproveController;
 use App\Http\Controllers\HistorySuratController;
 use App\Http\Controllers\TemplateSuratController;
-use App\Http\Controllers\UserSuratController;
 
 
 Route::get('/', [FrontController::class, 'index'])->name('frontend.index'); // Example for an "About" page
@@ -21,11 +19,7 @@ Route::middleware(['auth', 'can:manage surat'])->group(function () {
     
 });
 
-Route::middleware(['auth', 'can:manage_users'])->group(function () {
-    Route::resource('users', UserController::class);
-    Route::get('users/surat/create', [UserSuratController::class, 'create'])->name('users.surat.create');
-    Route::post('users/surat/store', [UserSuratController::class, 'store'])->name('users.surat.store');
-});
+
 
 Route::get('/dashboard', function () {
     return view('dashboard');

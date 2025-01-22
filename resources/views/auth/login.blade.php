@@ -30,9 +30,11 @@
                     <div class="form-items">
                         <h3>Login untuk membuat surat.</h3>
                         <p>Akses ke seluruh layanan akademik kampus dengan mudah dan cepat.</p>
-                        <!-- <div class="page-links">
-                            <a href="{{ url('login') }}" class="active">Login</a><a href="{{ url('register') }}">Register</a>
-                        </div> -->
+                        @if ($errors->has('email') || $errors->has('password'))
+                            <div class="alert alert-danger">
+                                <strong>Gagal login!</strong> Username atau password yang Anda masukkan salah.
+                            </div>
+                        @endif
                         <form method="POST" action="{{ route('login') }}">
                             @csrf
                             <input class="form-control" type="email" name="email" placeholder="Username" required>
@@ -41,9 +43,6 @@
                                 <button id="submit" type="submit" class="ibtn">Login</button> <a href="#">Lupa password?</a>
                             </div>
                         </form>
-                        <!-- <div class="other-links">
-                            <span>Or login with</span><a href="#">Facebook</a><a href="#">Google</a><a href="#">LinkedIn</a>
-                        </div> -->
                     </div>
                 </div>
             </div>
