@@ -58,11 +58,7 @@
       <ul>
         <li><a href="#hero" class="active">Home</a></li>
         <li class="dropdown">
-          <a href="#"><span>Layanan Surat</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
-          <ul>
-            <li><a href="#">Pengabdian Pada Masyarakat</a></li>
-            <li><a href="{{ url('/kpi') }}">Kerja Prakter Industri</a></li>
-          </ul>
+          <a href="{{ route('users.surat.create') }}"><span>Layanan Surat</span></a>
         </li>
       </ul>
       <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>

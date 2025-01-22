@@ -18,7 +18,7 @@
                 </div>
             </div>
             @can('manage surat')
-                <x-nav-link :href="route('template_surat.index')" :active="request()->routeIs('template_surat.index')">
+                <x-nav-link :href="route('surats.index')" :active="request()->routeIs('surats.index')">
                     {{ __('Manage Surat') }}
                 </x-nav-link>
             @endcan

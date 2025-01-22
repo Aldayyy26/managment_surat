@@ -1,5 +1,7 @@
 <?php
 
+// app/Http/Controllers/TemplateSuratController.php
+
 namespace App\Http\Controllers;
 
 use App\Models\TemplateSurat;
@@ -9,45 +11,69 @@ class TemplateSuratController extends Controller
 {
     public function index()
     {
-        $templates = TemplateSurat::all();
-        return view('template_surat.index', compact('templates'));
+        // Fetch all template surat records
+        $surats = TemplateSurat::all();
+        return view('surats.index', compact('surats'));
     }
 
     public function create()
     {
-        return view('template_surat.create');
+        // Return the view for creating a new template surat
+        return view('surats.create');
     }
 
     public function store(Request $request)
     {
+        // Validate the incoming request data
         $request->validate([
             'judul' => 'required|string|max:255',
-            'konten' => 'required',
+            'konten' => 'required|array',
+            'konten.*' => 'required|string',
         ]);
 
-        TemplateSurat::create($request->all());
-        return redirect()->route('template_surat.index')->with('success', 'Template surat berhasil dibuat.');
+        // Store the data
+        TemplateSurat::create([
+            'judul' => $request->judul,
+            'konten' => $request->konten,
+        ]);
+
+        return redirect()->route('surats.index')->with('success', 'Surat berhasil dibuat');
     }
 
-    public function edit(TemplateSurat $templateSurat)
+    public function edit($id)
     {
-        return view('template_surat.edit', compact('templateSurat'));
+        // Find the template surat by ID
+        $surat = TemplateSurat::findOrFail($id);
+
+        // Return the view for editing the template surat
+        return view('surats.edit', compact('surat'));
     }
 
-    public function update(Request $request, TemplateSurat $templateSurat)
+    public function update(Request $request, $id)
     {
+        // Validate the incoming request data
         $request->validate([
             'judul' => 'required|string|max:255',
-            'konten' => 'required',
+            'konten' => 'required|array',
+            'konten.*' => 'required|string',
         ]);
 
-        $templateSurat->update($request->all());
-        return redirect()->route('template_surat.index')->with('success', 'Template surat berhasil diperbarui.');
+        // Find the template surat and update the data
+        $surat = TemplateSurat::findOrFail($id);
+        $surat->update([
+            'judul' => $request->judul,
+            'konten' => $request->konten,
+        ]);
+
+        return redirect()->route('surats.index')->with('success', 'Surat berhasil diperbarui');
     }
 
-    public function destroy(TemplateSurat $templateSurat)
+    public function destroy($id)
     {
-        $templateSurat->delete();
-        return redirect()->route('template_surat.index')->with('success', 'Template surat berhasil dihapus.');
+        // Find the template surat and delete it
+        $surat = TemplateSurat::findOrFail($id);
+        $surat->delete();
+
+        return redirect()->route('surats.index')->with('success', 'Surat berhasil dihapus');
     }
 }
