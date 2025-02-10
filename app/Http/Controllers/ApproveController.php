@@ -2,65 +2,53 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use App\Models\PengajuanSurat;
 use Illuminate\Http\Request;
 
 class ApproveController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Menampilkan daftar surat yang perlu persetujuan.
      */
     public function index()
     {
-        return view('approve.index');
+        // Ambil semua pengajuan surat yang masih dalam status pending
+        $pengajuanSurats = PengajuanSurat::with('template', 'user')->where('status', 'pending')->get();
 
+        // Kirimkan data ke view
+        return view('approve.index', compact('pengajuanSurats'));
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Menyetujui pengajuan surat dengan tanda tangan.
      */
-    public function create()
-    {
-        //
-    }
+    public function approve(Request $request, PengajuanSurat $pengajuanSurat)
+{
+    $request->validate([
+        'signature' => 'required|string',  // Menambahkan validasi tipe data string
+    ]);
+
+    // Menyimpan tanda tangan dalam kolom signature
+    $pengajuanSurat->update([
+        'status' => 'approved',
+        'signature' => $request->signature,  // Menyimpan tanda tangan yang diterima
+    ]);
+
+    return response()->json(['message' => 'Surat telah disetujui.']);
+}
+
 
     /**
-     * Store a newly created resource in storage.
+     * Menolak pengajuan surat.
      */
-    public function store(Request $request)
+    public function reject(PengajuanSurat $pengajuanSurat)
     {
-        //
-    }
+        // Perbarui status surat menjadi ditolak
+        $pengajuanSurat->update([
+            'status' => 'rejected',
+        ]);
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        // Mengembalikan respons sukses
+        return response()->json(['message' => 'Surat telah ditolak.']);
     }
 }

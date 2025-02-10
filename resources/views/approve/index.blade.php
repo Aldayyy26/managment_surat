@@ -17,27 +17,33 @@
                                 <th class="border border-gray-300 px-4 py-2 text-left">No</th>
                                 <th class="border border-gray-300 px-4 py-2 text-left">Nama Surat</th>
                                 <th class="border border-gray-300 px-4 py-2 text-left">Tanggal</th>
+                                <th class="border border-gray-300 px-4 py-2 text-left">Pengaju</th>
                                 <th class="border border-gray-300 px-4 py-2 text-left">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr class="hover:bg-gray-50">
-                                <td class="border border-gray-300 px-4 py-2">1</td>
-                                <td class="border border-gray-300 px-4 py-2">Surat Undangan</td>
-                                <td class="border border-gray-300 px-4 py-2">2024-11-30</td>
-                                <td class="border border-gray-300 px-4 py-2 flex space-x-2">
-                                    <button
-                                        class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400 flex items-center"
-                                        onclick="approveSurat(1)">
-                                        ✔ Setujui
-                                    </button>
-                                    <button
-                                        class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400 flex items-center"
-                                        onclick="rejectSurat(1)">
-                                        ✖ Tolak
-                                    </button>
-                                </td>
-                            </tr>
+                            @foreach ($pengajuanSurats as $index => $surat)
+                                <tr class="hover:bg-gray-50">
+                                    <td class="border border-gray-300 px-4 py-2">{{ $index + 1 }}</td>
+                                    <!-- Menampilkan nama surat dari TemplateSurat -->
+                                    <td class="border border-gray-300 px-4 py-2">{{ $surat->template->judul }}</td>
+                                    <td class="border border-gray-300 px-4 py-2">{{ $surat->created_at->format('Y-m-d') }}</td>
+                                    <!-- Menampilkan nama pengguna yang mengajukan -->
+                                    <td class="border border-gray-300 px-4 py-2">{{ $surat->user->name }}</td>
+                                    <td class="border border-gray-300 px-4 py-2 flex space-x-2">
+                                        <button
+                                            class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400 flex items-center"
+                                            onclick="openSignatureModal(this)" data-id="{{ $surat->id }}">
+                                            ✔ Setujui
+                                        </button>
+                                        <button
+                                            class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400 flex items-center"
+                                            onclick="rejectSurat({{ $surat->id }})">
+                                            ✖ Tolak
+                                        </button>
+                                    </td>
+                                </tr>
+                            @endforeach
                         </tbody>
                     </table>
                 </div>
@@ -66,107 +72,81 @@
 <script>
     let signaturePad;
     let canvas;
-    let context;
-    let isCanvasResized = false; // Flag untuk memastikan resize hanya terjadi sekali
+    let selectedSuratId = null;
 
-    function approveSurat(suratId) {
-        console.log('Approve Surat Called:', suratId);
+    function openSignatureModal(button) {
+        selectedSuratId = button.getAttribute("data-id");
 
-        // Tampilkan modal
         const modal = document.getElementById('signatureModal');
-        if (!modal) {
-            console.error("Modal element not found");
-            return;
-        }
         modal.classList.remove('hidden');
 
-        // Ambil canvas dan context
         canvas = document.getElementById('signatureCanvas');
-        if (!canvas) {
-            console.error("Canvas element not found");
-            return;
-        }
+        const context = canvas.getContext('2d');
 
-        context = canvas.getContext('2d');
-        if (!context) {
-            console.error("Canvas context not found");
-            return;
-        }
-
-        // Jika canvas belum diresize, lakukan resize hanya sekali
-        if (!isCanvasResized) {
-            resizeCanvas();
-            isCanvasResized = true;
-        }
-
-        // Inisialisasi SignaturePad hanya jika belum ada
         if (!signaturePad) {
             signaturePad = new SignaturePad(canvas, {
                 penColor: "#000000",
                 backgroundColor: "#ffffff",
                 minWidth: 1,
-                maxWidth: 3,
-                onEnd: function () {
-                    console.log("SignaturePad drawing ended");
-                }
+                maxWidth: 3
             });
-            console.log("SignaturePad initialized");
         } else {
             signaturePad.clear();
         }
     }
 
-    function resizeCanvas() {
-        const ratio = window.devicePixelRatio || 1; // Rasio layar
-        const canvasWrapper = document.querySelector('#signatureModal .p-6'); // Cari elemen wrapper modal
-        const canvasWidth = canvasWrapper.offsetWidth; // Ambil lebar dari wrapper
-        const canvasHeight = 200; // Tentukan tinggi canvas sesuai kebutuhan
-
-        // Sesuaikan ukuran canvas berdasarkan wrapper
-        canvas.width = canvasWidth * ratio;
-        canvas.height = canvasHeight * ratio;
-        context.scale(ratio, ratio);
-
-        // Bersihkan canvas dan set latar belakang putih
-        context.clearRect(0, 0, canvas.width, canvas.height);
-        context.fillStyle = "#ffffff";
-        context.fillRect(0, 0, canvas.width, canvas.height);
-
-        console.log("Canvas resized and adjusted");
-    }
-
-    function rejectSurat(suratId) {
-        if (confirm('Apakah Anda yakin ingin menolak surat ini?')) {
-            alert(`Surat dengan ID ${suratId} ditolak.`);
-        }
-    }
-
     function closeSignatureModal() {
-        const modal = document.getElementById('signatureModal');
-        if (!modal) {
-            console.error("Modal element not found");
-            return;
-        }
-        modal.classList.add('hidden');
-
-        if (signaturePad) {
-            signaturePad.clear();
-            console.log("Signature cleared");
-        }
+        document.getElementById('signatureModal').classList.add('hidden');
+        signaturePad.clear();
     }
 
     function saveSignature() {
-        if (!signaturePad || signaturePad.isEmpty()) {
-            alert('Tanda tangan tidak boleh kosong!');
-            console.error("SignaturePad is empty");
-            return;
-        }
+    if (!signaturePad || signaturePad.isEmpty()) {
+        alert('Tanda tangan tidak boleh kosong!');
+        return;
+    }
 
-        const signatureData = signaturePad.toDataURL("image/png");
-        console.log('Generated Signature Data:', signatureData);
+    const signatureData = signaturePad.toDataURL("image/png");
 
-        alert('Tanda tangan berhasil disimpan!');
+    fetch(`/pengajuan-surat/${selectedSuratId}/approve`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({ signature: signatureData })  // Mengirimkan tanda tangan dalam format base64
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message);
         closeSignatureModal();
+        location.reload();
+    })
+    .catch(error => {
+        console.error("Error approving surat:", error);
+        alert("Terjadi kesalahan!");
+    });
+}
+
+
+    function rejectSurat(suratId) {
+        if (confirm('Apakah Anda yakin ingin menolak surat ini?')) {
+            fetch(`/pengajuan-surat/${suratId}/reject`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                location.reload();
+            })
+            .catch(error => {
+                console.error("Error rejecting surat:", error);
+                alert("Terjadi kesalahan!");
+            });
+        }
     }
 </script>
-

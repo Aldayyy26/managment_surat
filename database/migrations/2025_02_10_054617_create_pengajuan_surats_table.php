@@ -9,10 +9,11 @@ return new class extends Migration {
     {
         Schema::create('pengajuan_surats', function (Blueprint $table) {
             $table->id(); // Primary key
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade'); // User yang mengajukan surat
-            $table->foreignId('template_id')->constrained('template_surats')->onDelete('cascade'); // Template surat yang digunakan
-            $table->json('konten'); // Jawaban/form dari user
-            $table->enum('status', ['pending', 'disetujui', 'ditolak'])->default('pending'); // Status pengajuan
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade'); 
+            $table->foreignId('template_id')->constrained('template_surats')->onDelete('cascade'); 
+            $table->json('konten'); 
+            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
+            $table->text('signature')->nullable(); 
             $table->timestamps();
         });
     }

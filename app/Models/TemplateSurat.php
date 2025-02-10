@@ -15,4 +15,8 @@ class TemplateSurat extends Model
     protected $casts = [
         'konten' => 'array', 
     ];
+    public function pengajuanSurats()
+    {
+        return $this->hasMany(PengajuanSurat::class);
+    }
 }

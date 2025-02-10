@@ -2,19 +2,34 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\PengajuanSurat;
 use App\Models\TemplateSurat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\User;
+
 
 class PengajuanSuratController extends Controller
 {
+    use HasFactory;
+
     public function index()
     {
         $pengajuanSurats = PengajuanSurat::where('user_id', Auth::id())->get();
-        
         return view('pengajuan_surat.index', compact('pengajuanSurats'));
     }
+
+    public function approvalIndex()
+    {
+        // Fetch pengajuanSurat with the associated user and template
+        $pengajuanSurats = PengajuanSurat::where('status', 'pending')
+            ->with(['user', 'template']) // Eager load the relationships
+            ->get();
+
+        return view('approval.index', compact('pengajuanSurats'));
+    }
+
 
     public function create()
     {
@@ -43,28 +58,10 @@ class PengajuanSuratController extends Controller
     {
         return view('pengajuan_surat.show', compact('pengajuanSurat'));
     }
-    
-    public function approve(PengajuanSurat $pengajuanSurat, Request $request)
+    // app/Models/PengajuanSurat.php
+    public function user()
     {
-    $request->validate([
-        'signature' => 'required',
-    ]);
-
-    $pengajuanSurat->update([
-        'status' => 'approved',
-        'signature' => $request->signature, // Simpan tanda tangan
-    ]);
-
-    return redirect()->route('pengajuan-surat.index')->with('success', 'Surat telah disetujui.');
-    }
-
-    public function reject(PengajuanSurat $pengajuanSurat)
-    {
-        $pengajuanSurat->update([
-            'status' => 'rejected',
-        ]);
-
-        return redirect()->route('pengajuan-surat.index')->with('error', 'Surat telah ditolak.');
+        return $this->belongsTo(User::class);
     }
 
 }

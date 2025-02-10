@@ -8,29 +8,45 @@ use App\Http\Controllers\TemplateSuratController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\PengajuanSuratController;
 
+// Halaman Utama
+Route::get('/', [FrontController::class, 'index'])->name('frontend.index'); 
 
+// Dashboard (Harus Login & Terverifikasi)
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
+});
 
-Route::get('/', [FrontController::class, 'index'])->name ('frontend.index'); // Example for an "About" page
-Route::get('/approve', [ApproveController::class, 'index'])->name('approve.index'); // Example for an "About" page
-// Route to display available templates for the user // Example for an "About" page
-Route::resource('surats', TemplateSuratController::class);
-Route::get('/get-template-fields/{id}', [TemplateSuratController::class, 'getTemplateFields']);
-Route::resource('users', UserController::class);
+// Approve Section (Harus Login)
 Route::middleware(['auth'])->group(function () {
-    Route::resource('pengajuan-surat', PengajuanSuratController::class);
-    Route::patch('/pengajuan-surat/{pengajuanSurat}/approve', [PengajuanSuratController::class, 'approve'])->name('pengajuan-surat.approve');
-    Route::patch('/pengajuan-surat/{pengajuanSurat}/reject', [PengajuanSuratController::class, 'reject'])->name('pengajuan-surat.reject');
+    Route::get('/approve', [ApproveController::class, 'index'])->name('approve.index');
+    Route::patch('/approve/{pengajuanSurat}/approve', [ApproveController::class, 'approve'])->name('approve.approve');
+    Route::patch('/approve/{pengajuanSurat}/reject', [ApproveController::class, 'reject'])->name('approve.reject');
 });
 
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+// Template Surat (CRUD)
+Route::resource('surats', TemplateSuratController::class);
+Route::get('/get-template-fields/{id}', [TemplateSuratController::class, 'getTemplateFields']);
 
-Route::middleware('auth')->group(function () {
+// User Management (CRUD)
+Route::resource('users', UserController::class);
+
+// Pengajuan Surat (CRUD & Approval)
+Route::middleware(['auth'])->group(function () {
+    Route::resource('pengajuan-surat', PengajuanSuratController::class);
+    Route::post('/pengajuan-surat/{pengajuanSurat}/approve', [ApproveController::class, 'approve'])->name('approve.surat');
+    Route::post('/pengajuan-surat/{pengajuanSurat}/reject', [ApproveController::class, 'reject'])->name('reject.surat');
+
+});
+
+// Profil User
+Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+// Menggunakan Auth Routes
 require __DIR__.'/auth.php';
