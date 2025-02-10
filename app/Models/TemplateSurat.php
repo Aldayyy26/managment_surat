@@ -9,7 +9,7 @@ class TemplateSurat extends Model
 {
     use HasFactory;
 
-    protected $table = 'template_surat';
+    protected $table = 'template_surats';
     protected $fillable = ['judul', 'konten'];
 
     protected $casts = [

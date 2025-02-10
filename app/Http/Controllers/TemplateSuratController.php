@@ -67,4 +67,16 @@ class TemplateSuratController extends Controller
         $surat->delete();
         return redirect()->route('surats.index')->with('success', 'Template surat berhasil dihapus.');
     }
+    public function getTemplateFields($id)
+    {
+        $template = TemplateSurat::find($id);
+
+        if (!$template) {
+            return response()->json(['error' => 'Template tidak ditemukan'], 404);
+        }
+
+        return response()->json(json_decode($template->konten, true));
+    }
+    
+
 }

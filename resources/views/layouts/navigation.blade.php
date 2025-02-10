@@ -28,7 +28,7 @@
                 </x-nav-link>
             @endcan
             @can('manage history surat')
-                <x-nav-link :href="route('history.index')" :active="request()->routeIs('history.index')">
+                <x-nav-link :href="route('pengajuan-surat.index')" :active="request()->routeIs('pengajuan-surat.index')">
                     {{ __('Histori Surat') }}
                 </x-nav-link>
             @endcan
