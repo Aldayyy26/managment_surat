@@ -23,20 +23,29 @@ class ApproveController extends Controller
      * Menyetujui pengajuan surat dengan tanda tangan.
      */
     public function approve(Request $request, PengajuanSurat $pengajuanSurat)
-{
-    $request->validate([
-        'signature' => 'required|string',  // Menambahkan validasi tipe data string
-    ]);
+    {
+        $request->validate([
+            'signature' => 'required|string',
+        ]);
 
-    // Menyimpan tanda tangan dalam kolom signature
-    $pengajuanSurat->update([
-        'status' => 'Disetujui',
-        'signature' => $request->signature,  // Menyimpan tanda tangan yang diterima
-    ]);
+        // Konversi base64 ke file gambar
+        $signatureData = $request->signature;
+        $signatureData = str_replace('data:image/png;base64,', '', $signatureData);
+        $signatureData = str_replace(' ', '+', $signatureData);
+        $signatureImage = base64_decode($signatureData);
+        
+        // Simpan gambar ke dalam storage
+        $fileName = 'signatures/' . uniqid() . '.png';
+        Storage::disk('public')->put($fileName, $signatureImage);
 
-    return response()->json(['message' => 'Surat telah disetujui.']);
-}
+        // Simpan path gambar ke database
+        $pengajuanSurat->update([
+            'status' => 'Disetujui',
+            'signature' => $fileName, // Simpan path gambar
+        ]);
 
+        return response()->json(['message' => 'Surat telah disetujui.']);
+    }
 
     /**
      * Menolak pengajuan surat.

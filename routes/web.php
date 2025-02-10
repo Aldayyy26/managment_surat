@@ -23,6 +23,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/approve', [ApproveController::class, 'index'])->name('approve.index');
     Route::patch('/approve/{pengajuanSurat}/approve', [ApproveController::class, 'approve'])->name('approve.approve');
     Route::patch('/approve/{pengajuanSurat}/reject', [ApproveController::class, 'reject'])->name('approve.reject');
+    Route::get('/pengajuan-surat/{pengajuanSurat}/pdf', [ApproveController::class, 'generatePDF'])->name('pengajuan.pdf');
 });
 
 

@@ -8,6 +8,8 @@ use App\Models\TemplateSurat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use Barryvdh\DomPDF\Facade\Pdf;
+
 
 
 class PengajuanSuratController extends Controller
