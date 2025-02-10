@@ -9,7 +9,7 @@ use App\Http\Controllers\HistorySuratController;
 use App\Http\Controllers\TemplateSuratController;
 
 
-Route::get('/', [FrontController::class, 'index'])->name('frontend.index'); // Example for an "About" page
+Route::get('/', [FrontController::class, 'index'])->name ('frontend.index'); // Example for an "About" page
 Route::get('/approve', [ApproveController::class, 'index'])->name('approve.index'); // Example for an "About" page
 // Route to display available templates for the user // Example for an "About" page
 Route::get('/history', [HistorySuratController::class, 'index'])->name('history.index'); // Example for an "About" page
