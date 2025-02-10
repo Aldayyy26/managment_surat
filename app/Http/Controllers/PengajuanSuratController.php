@@ -54,14 +54,56 @@ class PengajuanSuratController extends Controller
         return redirect()->route('pengajuan-surat.index')->with('success', 'Pengajuan surat berhasil diajukan.');
     }
 
-    public function show(PengajuanSurat $pengajuanSurat)
-    {
-        return view('pengajuan_surat.show', compact('pengajuanSurat'));
-    }
     // app/Models/PengajuanSurat.php
     public function user()
     {
         return $this->belongsTo(User::class);
     }
 
+    public function download(PengajuanSurat $pengajuanSurat)
+    {
+        if ($pengajuanSurat->status != 'approved') {
+            return redirect()->route('pengajuan-surat.index')->with('error', 'Hanya surat yang telah disetujui yang dapat diunduh.');
+        }
+
+        $pdf = Pdf::loadView('pengajuan_surat.surat_pdf', compact('pengajuanSurat'));
+
+        return $pdf->download('Surat_Pengajuan_' . $pengajuanSurat->id . '.pdf');
+    }
+    public function show(PengajuanSurat $pengajuanSurat)
+    {
+        if ($pengajuanSurat->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized action.');
+        }
+        return view('pengajuan_surat.show', compact('pengajuanSurat'));
+    }
+
+    public function edit(PengajuanSurat $pengajuanSurat)
+    {
+        if ($pengajuanSurat->user_id !== Auth::id() || $pengajuanSurat->status !== 'pending') {
+            return redirect()->route('pengajuan-surat.index')->with('error', 'Hanya surat dalam status pending yang dapat diedit.');
+        }
+
+        $templates = TemplateSurat::all();
+        return view('pengajuan_surat.edit', compact('pengajuanSurat', 'templates'));
+    }
+
+    public function update(Request $request, PengajuanSurat $pengajuanSurat)
+    {
+        if ($pengajuanSurat->user_id !== Auth::id() || $pengajuanSurat->status !== 'pending') {
+            return redirect()->route('pengajuan-surat.index')->with('error', 'Hanya surat dalam status pending yang dapat diperbarui.');
+        }
+
+        $request->validate([
+            'template_id' => 'required|exists:template_surats,id',
+            'konten' => 'required|array',
+        ]);
+
+        $pengajuanSurat->update([
+            'template_id' => $request->template_id,
+            'konten' => json_encode($request->konten),
+        ]);
+
+        return redirect()->route('pengajuan-surat.index')->with('success', 'Pengajuan surat berhasil diperbarui.');
+    }
 }

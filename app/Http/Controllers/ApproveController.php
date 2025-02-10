@@ -30,7 +30,7 @@ class ApproveController extends Controller
 
     // Menyimpan tanda tangan dalam kolom signature
     $pengajuanSurat->update([
-        'status' => 'approved',
+        'status' => 'Disetujui',
         'signature' => $request->signature,  // Menyimpan tanda tangan yang diterima
     ]);
 
@@ -45,7 +45,7 @@ class ApproveController extends Controller
     {
         // Perbarui status surat menjadi ditolak
         $pengajuanSurat->update([
-            'status' => 'rejected',
+            'status' => 'Ditolak',
         ]);
 
         // Mengembalikan respons sukses

@@ -34,10 +34,18 @@
                                 <td class="border border-gray-300 px-4 py-2">{{ $surat->template->judul }}</td>
                                 <td class="border border-gray-300 px-4 py-2">{{ ucfirst($surat->status) }}</td>
                                 <td class="border border-gray-300 px-4 py-2">{{ $surat->created_at->format('d-m-Y') }}</td>
-                                <td class="border border-gray-300 px-4 py-2">
-                                    <a href="{{ route('pengajuan-surat.show', $surat->id) }}" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400">
-                                        Lihat Detail
-                                    </a>
+                                <td class="border border-gray-300 px-4 py-2 flex space-x-2">                                    
+                                    @if($surat->status == 'pending')
+                                        <a href="{{ route('pengajuan-surat.edit', $surat->id) }}" class="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600">
+                                            Edit
+                                        </a>
+                                    @endif
+                                    
+                                    @if($surat->status == 'approved')
+                                        <a href="{{ route('pengajuan-surat.download', $surat->id) }}" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600">
+                                            Download
+                                        </a>
+                                    @endif
                                 </td>
                             </tr>
                             @endforeach
