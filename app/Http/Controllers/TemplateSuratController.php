@@ -7,9 +7,15 @@ use Illuminate\Http\Request;
 
 class TemplateSuratController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $surats = TemplateSurat::all();
+        $query = TemplateSurat::query();
+
+        if ($request->filled('search')) {
+            $query->where('judul', 'like', '%' . $request->search . '%');
+        }
+
+        $surats = $query->paginate(10); // Menggunakan pagination agar lebih baik
         return view('surats.index', compact('surats'));
     }
 

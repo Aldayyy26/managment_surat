@@ -20,6 +20,11 @@
                     <button type="submit" class="px-6 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition duration-300">
                         Cari
                     </button>
+                    @if(request()->filled('search_name') || request()->filled('search_nim'))
+                        <a href="{{ route('users.index') }}" class="px-6 py-2 bg-gray-400 text-white rounded-lg font-semibold hover:bg-gray-500 transition duration-300">
+                            Batal
+                        </a>
+                    @endif
                 </form>
             </div>
 
