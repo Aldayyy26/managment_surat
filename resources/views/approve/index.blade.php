@@ -73,8 +73,8 @@
                 </div>
 </x-app-layout>
 
-    <script src="https://cdn.jsdelivr.net/npm/signature_pad"></script>
-    <script>
+<script src="https://cdn.jsdelivr.net/npm/signature_pad"></script>
+<script>
     let signaturePad;
     let selectedSuratId = null;
 
@@ -102,6 +102,7 @@
             signaturePad.clear();
         }
     }
+
     function showSuratDetail(content) {
         let parsedContent = JSON.parse(content);
         let formattedContent = Object.entries(parsedContent)
@@ -111,9 +112,10 @@
         document.getElementById('suratContent').innerHTML = formattedContent;
         document.getElementById('suratDetailModal').classList.remove('hidden');
     }
-        function closeSuratDetailModal() {
-            document.getElementById('suratDetailModal').classList.add('hidden');
-        }
+
+    function closeSuratDetailModal() {
+        document.getElementById('suratDetailModal').classList.add('hidden');
+    }
 
     function closeSignatureModal() {
         document.getElementById('signatureModal').classList.add('hidden');
@@ -122,51 +124,49 @@
         }
     }
 
+    // Define the saveSignature function
     function saveSignature() {
-        if (!signaturePad || signaturePad.isEmpty()) {
-            alert('Tanda tangan tidak boleh kosong!');
-            return;
-        }
-        const signatureData = signaturePad.toDataURL("image/png");
+        // Get the base64 signature data
+        const signatureData = signaturePad.toDataURL();
 
-        fetch(`/pengajuan-surat/${selectedSuratId}/diterima`, {
+        // Send the signature data to the server
+        fetch(`/pengajuan-surat/${selectedSuratId}/diterima`, {  // use the 'approve' route
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
             },
-            body: JSON.stringify({ signature: signatureData })  // Kirim tanda tangan sebagai base64
+            body: JSON.stringify({ signature: signatureData })
         })
         .then(response => response.json())
         .then(data => {
-            alert(data.message);
+            console.log(data.message);
             closeSignatureModal();
-            location.reload();
         })
         .catch(error => {
-            console.error("Error approving surat:", error);
-            alert("Terjadi kesalahan!");
+            console.error('Error:', error);
         });
+
     }
 
     function rejectSurat(suratId) {
-            if (confirm('Apakah Anda yakin ingin menolak surat ini?')) {
-                fetch(`/pengajuan-surat/${suratId}/ditolak`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    alert(data.message);
-                    location.reload();
-                })
-                .catch(error => {
-                    console.error("Error rejecting surat:", error);
-                    alert("Terjadi kesalahan!");
-                });
-            }
+        if (confirm('Apakah Anda yakin ingin menolak surat ini?')) {
+            fetch(`/pengajuan-surat/${suratId}/ditolak`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                location.reload();
+            })
+            .catch(error => {
+                console.error("Error rejecting surat:", error);
+                alert("Terjadi kesalahan!");
+            });
         }
+    }
 </script>

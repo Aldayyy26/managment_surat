@@ -20,8 +20,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 // Approve Section (Harus Login)
 Route::middleware(['auth'])->group(function () {
     Route::get('/approve', [ApproveController::class, 'index'])->name('approve.index');
-    Route::patch('/approve/{pengajuanSurat}/approve', [ApproveController::class, 'approve'])->name('approve.approve');
-    Route::patch('/approve/{pengajuanSurat}/reject', [ApproveController::class, 'reject'])->name('approve.reject');
+    Route::patch('/approve/{pengajuanSurat}/diterima', [ApproveController::class, 'approve'])->name('approve.diterima');
+    Route::patch('/approve/{pengajuanSurat}/ditolak', [ApproveController::class, 'reject'])->name('approve.ditolak');
 });
 
 Route::resource('surats', TemplateSuratController::class);
@@ -33,8 +33,8 @@ Route::resource('users', UserController::class);
 
 Route::middleware(['auth'])->group(function () {
     Route::resource('pengajuan-surat', PengajuanSuratController::class);
-    Route::post('/pengajuan-surat/{pengajuanSurat}/approve', [ApproveController::class, 'approve'])->name('approve.surat');
-    Route::post('/pengajuan-surat/{pengajuanSurat}/reject', [ApproveController::class, 'reject'])->name('reject.surat');
+    Route::post('/pengajuan-surat/{pengajuanSurat}/diterima', [ApproveController::class, 'approve'])->name('approve.diterima');
+    Route::post('/pengajuan-surat/{pengajuanSurat}/ditolak', [ApproveController::class, 'reject'])->name('approve.ditolak');
     Route::get('/pengajuan-surat/{pengajuanSurat}/download', [PengajuanSuratController::class, 'download'])->name('pengajuan-surat.download');
 });
 
