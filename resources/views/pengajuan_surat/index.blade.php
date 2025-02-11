@@ -42,9 +42,9 @@
                                     @endif
                                     
                                     @if($surat->status == 'approved')
-                                        <a href="{{ route('pengajuan-surat.download', $surat->id) }}" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600">
-                                            Download
-                                        </a>
+                                    <a href="{{ route('pengajuan-surat.download', $surat->id) }}" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">
+                                        Download Surat
+                                    </a>
                                     @endif
                                 </td>
                             </tr>

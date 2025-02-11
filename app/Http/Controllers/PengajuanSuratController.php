@@ -72,13 +72,6 @@ class PengajuanSuratController extends Controller
 
         return $pdf->download('Surat_Pengajuan_' . $pengajuanSurat->id . '.pdf');
     }
-    public function show(PengajuanSurat $pengajuanSurat)
-    {
-        if ($pengajuanSurat->user_id !== Auth::id()) {
-            abort(403, 'Unauthorized action.');
-        }
-        return view('pengajuan_surat.show', compact('pengajuanSurat'));
-    }
 
     public function edit(PengajuanSurat $pengajuanSurat)
     {

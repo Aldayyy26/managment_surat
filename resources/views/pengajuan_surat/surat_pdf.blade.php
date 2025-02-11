@@ -34,10 +34,19 @@
         <p>Demikian surat ini dibuat untuk diproses sebagaimana mestinya.</p>
 
         <div class="signature">
-            <p>Hormat saya,</p>
+    <p>Hormat saya,</p>
+    <br><br>
+        @if ($pengajuanSurat->signature)
+            <br><br>
+            <img src="data:image/png;base64,{{ $pengajuanSurat->signature }}" alt="Signature" style="max-width: 200px;">
+        @endif
+        @if ($pengajuanSurat->user->hasRole('kepalaprodi'))
+            <p>Hormat kami,</p>
             <br><br>
             <p>{{ $pengajuanSurat->user->name }}</p>
-        </div>
+        @endif
+    </div>
+
     </div>
 </body>
 </html>
