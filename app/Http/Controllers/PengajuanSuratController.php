@@ -25,7 +25,7 @@ class PengajuanSuratController extends Controller
     public function approvalIndex()
     {
         // Fetch pengajuanSurat with the associated user and template
-        $pengajuanSurats = PengajuanSurat::where('status', 'pending')
+        $pengajuanSurats = PengajuanSurat::where('status', 'proses')
             ->with(['user', 'template']) // Eager load the relationships
             ->get();
 
@@ -50,7 +50,7 @@ class PengajuanSuratController extends Controller
             'user_id' => Auth::id(),
             'template_id' => $request->template_id,
             'konten' => json_encode($request->konten),
-            'status' => 'pending',
+            'status' => 'proses',
         ]);
 
         return redirect()->route('pengajuan-surat.index')->with('success', 'Pengajuan surat berhasil diajukan.');
@@ -64,7 +64,7 @@ class PengajuanSuratController extends Controller
 
     public function download(PengajuanSurat $pengajuanSurat)
     {
-        if ($pengajuanSurat->status != 'approved') {
+        if ($pengajuanSurat->status != 'diterima') {
             return redirect()->route('pengajuan-surat.index')->with('error', 'Hanya surat yang telah disetujui yang dapat diunduh.');
         }
 
@@ -75,7 +75,7 @@ class PengajuanSuratController extends Controller
 
     public function edit(PengajuanSurat $pengajuanSurat)
     {
-        if ($pengajuanSurat->user_id !== Auth::id() || $pengajuanSurat->status !== 'pending') {
+        if ($pengajuanSurat->user_id !== Auth::id() || $pengajuanSurat->status !== 'proses') {
             return redirect()->route('pengajuan-surat.index')->with('error', 'Hanya surat dalam status pending yang dapat diedit.');
         }
 
@@ -85,7 +85,7 @@ class PengajuanSuratController extends Controller
 
     public function update(Request $request, PengajuanSurat $pengajuanSurat)
     {
-        if ($pengajuanSurat->user_id !== Auth::id() || $pengajuanSurat->status !== 'pending') {
+        if ($pengajuanSurat->user_id !== Auth::id() || $pengajuanSurat->status !== 'proses') {
             return redirect()->route('pengajuan-surat.index')->with('error', 'Hanya surat dalam status pending yang dapat diperbarui.');
         }
 

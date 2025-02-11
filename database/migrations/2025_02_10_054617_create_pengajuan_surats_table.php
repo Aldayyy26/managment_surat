@@ -12,7 +12,7 @@ return new class extends Migration {
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade'); 
             $table->foreignId('template_id')->constrained('template_surats')->onDelete('cascade'); 
             $table->json('konten'); 
-            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
+            $table->enum('status', ['proses', 'diterima', 'ditolak'])->default('proses');
             $table->text('signature')->nullable(); 
             $table->timestamps();
         });

@@ -18,6 +18,7 @@
                                 <th class="border border-gray-300 px-4 py-2 text-left">Nama Surat</th>
                                 <th class="border border-gray-300 px-4 py-2 text-left">Tanggal</th>
                                 <th class="border border-gray-300 px-4 py-2 text-left">Pengaju</th>
+                                <th class="border border-gray-300 px-4 py-2 text-left">Isi Surat</th>
                                 <th class="border border-gray-300 px-4 py-2 text-left">Aksi</th>
                             </tr>
                         </thead>
@@ -30,6 +31,10 @@
                                     <td class="border border-gray-300 px-4 py-2">{{ $surat->created_at->format('Y-m-d') }}</td>
                                     <!-- Menampilkan nama pengguna yang mengajukan -->
                                     <td class="border border-gray-300 px-4 py-2">{{ $surat->user->name }}</td>
+                                    <td class="border border-gray-300 px-4 py-2">
+                                        {{ Str::limit(implode(', ', json_decode($surat->konten, true)), 50, '...') }} 
+                                        <button class="text-blue-500 underline" onclick="showSuratDetail(`{{ json_encode(json_decode($surat->konten, true)) }}`)">Lihat Detail</button>
+                                    </td>
                                     <td class="border border-gray-300 px-4 py-2 flex space-x-2">
                                         <button
                                             class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400 flex items-center"
@@ -46,6 +51,13 @@
                             @endforeach
                         </tbody>
                     </table>
+                </div>
+                <div id="suratDetailModal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50">
+                    <div class="bg-white rounded-lg shadow-lg p-6 w-96">
+                        <h2 class="text-xl font-bold mb-4">Detail Surat</h2>
+                        <p id="suratContent" class="text-gray-700"></p>
+                        <button class="bg-gray-500 text-white px-4 py-2 rounded-md mt-4" onclick="closeSuratDetailModal()">Tutup</button>
+                    </div>
                 </div>
                 <!-- Modal untuk tanda tangan -->
                 <div id="signatureModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
@@ -90,6 +102,18 @@
             signaturePad.clear();
         }
     }
+    function showSuratDetail(content) {
+        let parsedContent = JSON.parse(content);
+        let formattedContent = Object.entries(parsedContent)
+            .map(([key, value]) => `<b>${key}:</b> ${value}`)
+            .join("<br>");
+        
+        document.getElementById('suratContent').innerHTML = formattedContent;
+        document.getElementById('suratDetailModal').classList.remove('hidden');
+    }
+        function closeSuratDetailModal() {
+            document.getElementById('suratDetailModal').classList.add('hidden');
+        }
 
     function closeSignatureModal() {
         document.getElementById('signatureModal').classList.add('hidden');
@@ -105,7 +129,7 @@
         }
         const signatureData = signaturePad.toDataURL("image/png");
 
-        fetch(`/pengajuan-surat/${selectedSuratId}/approve`, {
+        fetch(`/pengajuan-surat/${selectedSuratId}/diterima`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -127,7 +151,7 @@
 
     function rejectSurat(suratId) {
             if (confirm('Apakah Anda yakin ingin menolak surat ini?')) {
-                fetch(`/pengajuan-surat/${suratId}/reject`, {
+                fetch(`/pengajuan-surat/${suratId}/ditolak`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

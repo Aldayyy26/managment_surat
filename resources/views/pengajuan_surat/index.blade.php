@@ -35,15 +35,15 @@
                                 <td class="border border-gray-300 px-4 py-2">{{ ucfirst($surat->status) }}</td>
                                 <td class="border border-gray-300 px-4 py-2">{{ $surat->created_at->format('d-m-Y') }}</td>
                                 <td class="border border-gray-300 px-4 py-2 flex space-x-2">                                    
-                                    @if($surat->status == 'pending')
+                                    @if($surat->status == 'proses')
                                         <a href="{{ route('pengajuan-surat.edit', $surat->id) }}" class="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600">
                                             Edit
                                         </a>
                                     @endif
                                     
-                                    @if($surat->status == 'approved')
+                                    @if($surat->status == 'diterima')
                                     <a href="{{ route('pengajuan-surat.download', $surat->id) }}" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">
-                                        Download Surat
+                                        Download
                                     </a>
                                     @endif
                                 </td>
