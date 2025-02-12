@@ -64,6 +64,8 @@ class PengajuanSuratController extends Controller
 
     public function download(PengajuanSurat $pengajuanSurat)
     {
+        // return $pengajuanSurat;
+
         if ($pengajuanSurat->status != 'diterima') {
             return redirect()->route('pengajuan-surat.index')->with('error', 'Hanya surat yang telah disetujui yang dapat diunduh.');
         }

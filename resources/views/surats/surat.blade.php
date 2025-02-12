@@ -47,71 +47,18 @@
             <p>Demikian surat persetujuan ini dibuat untuk digunakan sebagaimana mestinya.</p>
         </div>
 
-        <!-- Canvas untuk Tanda Tangan -->
-        <div>
-            <canvas id="signatureCanvas" width="300" height="150" style="border: 1px solid #000;"></canvas>
-        </div>
-
-        <!-- Tombol untuk kirim tanda tangan -->
-        <div>
-            <button id="submitSignature">Kirim Tanda Tangan</button>
-        </div>
-
         <!-- Tanda Tangan -->
         <div class="signature">
             <p>Kota XYZ, {{ now()->format('d F Y') }}</p>
             <p><strong>Kepala Dinas XYZ</strong></p>
             @if($pengajuanSurat->signature)
-                <img src="{{ asset('storage/' . $pengajuanSurat->signature) }}" alt="Tanda Tangan">
+                <img src="{{ 'storage/' . $pengajuanSurat->signature }}" alt="Tanda Tangan">
+            @else
+                <p>No signature available.</p>
             @endif
             <p><u>Nama Pejabat</u></p>
             <p>NIP: 123456789</p>
         </div>
     </div>
-
-    <script>
-        // Inisialisasi canvas untuk tanda tangan
-        const canvas = document.getElementById('signatureCanvas');
-        const context = canvas.getContext('2d');
-        let isDrawing = false;
-
-        // Fungsi untuk mulai menggambar
-        canvas.addEventListener('mousedown', (e) => {
-            isDrawing = true;
-            context.beginPath();
-            context.moveTo(e.offsetX, e.offsetY);
-        });
-
-        // Fungsi untuk menggambar saat mouse bergerak
-        canvas.addEventListener('mousemove', (e) => {
-            if (isDrawing) {
-                context.lineTo(e.offsetX, e.offsetY);
-                context.stroke();
-            }
-        });
-
-        // Fungsi untuk berhenti menggambar
-        canvas.addEventListener('mouseup', () => {
-            isDrawing = false;
-        });
-
-        // Kirim tanda tangan saat tombol diklik
-        document.getElementById('submitSignature').addEventListener('click', () => {
-            const signatureData = canvas.toDataURL(); // Mengambil data gambar base64
-
-            const formData = new FormData();
-            formData.append('signature', signatureData);
-
-            fetch('/approve/{{ $pengajuanSurat->id }}/approve', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                alert(data.message);
-            })
-            .catch(error => console.error('Error:', error));
-        });
-    </script>
 </body>
 </html>
