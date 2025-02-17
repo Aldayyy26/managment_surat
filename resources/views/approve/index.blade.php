@@ -126,11 +126,18 @@
 
     // Define the saveSignature function
     function saveSignature() {
-        // Get the base64 signature data
+        if (signaturePad.isEmpty()) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Tanda tangan kosong!',
+                text: 'Harap tanda tangani sebelum menyetujui surat.'
+            });
+            return;
+        }
+
         const signatureData = signaturePad.toDataURL();
 
-        // Send the signature data to the server
-        fetch(`/pengajuan-surat/${selectedSuratId}/diterima`, {  // use the 'approve' route
+        fetch(`/pengajuan-surat/${selectedSuratId}/diterima`, { 
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -140,14 +147,32 @@
         })
         .then(response => response.json())
         .then(data => {
-            console.log(data.message);
-            closeSignatureModal();
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                text: data.message,
+                timer: 2000,
+                showConfirmButton: false
+            });
+
+            closeSignatureModal(); // Tutup modal setelah sukses
+
+            // Hapus baris surat dari tabel agar langsung hilang
+            const rowToRemove = document.querySelector(`[data-id="${selectedSuratId}"]`);
+            if (rowToRemove) {
+                rowToRemove.remove();
+            }
         })
         .catch(error => {
             console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal!',
+                text: 'Terjadi kesalahan saat menyimpan tanda tangan.'
+            });
         });
-
     }
+
 
     function rejectSurat(suratId) {
         if (confirm('Apakah Anda yakin ingin menolak surat ini?')) {
