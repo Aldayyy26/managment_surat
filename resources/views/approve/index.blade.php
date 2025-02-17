@@ -126,24 +126,62 @@
 
     // Define the saveSignature function
     function saveSignature() {
-        if (signaturePad.isEmpty()) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Tanda tangan kosong!',
-                text: 'Harap tanda tangani sebelum menyetujui surat.'
-            });
-            return;
+    if (signaturePad.isEmpty()) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Tanda tangan kosong!',
+            text: 'Harap tanda tangani sebelum menyetujui surat.'
+        });
+        return;
+    }
+
+    const signatureData = signaturePad.toDataURL();
+
+    fetch(`/pengajuan-surat/${selectedSuratId}/diterima`, { 
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({ signature: signatureData })
+    })
+    .then(response => response.json())
+    .then(data => {
+        Swal.fire({
+            icon: 'success',
+            title: 'Berhasil!',
+            text: data.message,
+            timer: 2000,
+            showConfirmButton: false
+        });
+
+        closeSignatureModal(); // Tutup modal setelah sukses
+
+        // Hapus baris surat dari tabel agar langsung hilang
+        const rowToRemove = document.querySelector(`button[data-id="${selectedSuratId}"]`).closest('tr');
+        if (rowToRemove) {
+            rowToRemove.remove();
         }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Gagal!',
+            text: 'Terjadi kesalahan saat menyimpan tanda tangan.'
+        });
+    });
+}
 
-        const signatureData = signaturePad.toDataURL();
 
-        fetch(`/pengajuan-surat/${selectedSuratId}/diterima`, { 
+function rejectSurat(suratId) {
+    if (confirm('Apakah Anda yakin ingin menolak surat ini?')) {
+        fetch(`/pengajuan-surat/${suratId}/ditolak`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            },
-            body: JSON.stringify({ signature: signatureData })
+            }
         })
         .then(response => response.json())
         .then(data => {
@@ -155,43 +193,20 @@
                 showConfirmButton: false
             });
 
-            closeSignatureModal(); // Tutup modal setelah sukses
-
             // Hapus baris surat dari tabel agar langsung hilang
-            const rowToRemove = document.querySelector(`[data-id="${selectedSuratId}"]`);
+            const rowToRemove = document.querySelector(`button[data-id="${suratId}"]`).closest('tr');
             if (rowToRemove) {
                 rowToRemove.remove();
             }
         })
         .catch(error => {
-            console.error('Error:', error);
+            console.error("Error rejecting surat:", error);
             Swal.fire({
                 icon: 'error',
                 title: 'Gagal!',
-                text: 'Terjadi kesalahan saat menyimpan tanda tangan.'
+                text: 'Terjadi kesalahan saat menolak surat.'
             });
         });
     }
-
-
-    function rejectSurat(suratId) {
-        if (confirm('Apakah Anda yakin ingin menolak surat ini?')) {
-            fetch(`/pengajuan-surat/${suratId}/ditolak`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                alert(data.message);
-                location.reload();
-            })
-            .catch(error => {
-                console.error("Error rejecting surat:", error);
-                alert("Terjadi kesalahan!");
-            });
-        }
-    }
+}
 </script>
