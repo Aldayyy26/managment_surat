@@ -26,8 +26,9 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('stempels', StempelController::class);
 
     Route::get('/approve', [ApproveController::class, 'index'])->name('approve.index');
-    Route::patch('/approve/{pengajuanSurat}/diterima', [ApproveController::class, 'approve'])->name('approve.diterima');
-    Route::patch('/approve/{pengajuanSurat}/ditolak', [ApproveController::class, 'reject'])->name('approve.ditolak');
+    Route::post('/pengajuan-surat/{pengajuanSurat}/diterima', [ApproveController::class, 'approve']);
+    Route::post('/pengajuan-surat/{pengajuanSurat}/ditolak', [ApproveController::class, 'reject']);
+
 
     // Pengajuan Surat (CRUD + download)
     Route::resource('pengajuan-surat', PengajuanSuratController::class);
