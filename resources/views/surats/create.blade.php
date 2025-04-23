@@ -73,20 +73,21 @@
             newField.classList.add('flex', 'items-center', 'space-x-2', 'mb-2');
 
             newField.innerHTML = `
-                <input type="text" name="konten[${kontenIndex}][label]" class="form-input mt-1 block w-full" placeholder="Label Konten">
-                <select name="konten[${kontenIndex}][type]" class="form-input w-40">
-                    <option value="">Pilih Tipe</option>
-                    <option value="text">Text</option>
-                    <option value="date">Date</option>
-                    <option value="number">Number</option>
-                    <option value="email">Email</option>
-                    <option value="textarea">Textarea</option>
-                    <option value="checkbox">Checkbox</option>
-                    <option value="radio">Radio</option>
-                    <option value="select">Select</option>
-                </select>
-                <button type="button" class="bg-red-500 text-white px-4 py-2 rounded-md remove-konten">-</button>
+            <input type="text" name="konten[${kontenIndex}][label]" class="form-input mt-1 block w-full" placeholder="Label Konten">
+            <select name="konten[${kontenIndex}][type]" class="form-input w-40">
+                <option value="">Pilih Tipe</option>
+                <option value="text">Text</option>
+                <option value="date">Date</option>
+                <option value="number">Number</option>
+                <option value="email">Email</option>
+                <option value="textarea">Textarea</option>
+                <option value="checkbox">Checkbox</option>
+                <option value="radio">Radio</option>
+                <option value="select">Select</option>
+            </select>
+            <button type="button" class="bg-red-500 text-white px-4 py-2 rounded-md remove-konten">-</button>
             `;
+
 
             wrapper.appendChild(newField);
             kontenIndex++;
