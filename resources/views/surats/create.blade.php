@@ -29,7 +29,7 @@
 
                         <div class="mb-4">
                             <label class="block text-gray-700 font-medium">Kepada Yth</label>
-                            <input type="text" name="kepada_yth" class="form-input mt-1 block w-full" required>
+                            <input type="text" name="kepada_yth" class="form-input mt-1 block w-full" placeholder="Boleh dikosongkan jika tidak diperlukan">
                         </div>
 
                         <div class="mb-4">

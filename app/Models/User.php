@@ -25,6 +25,8 @@ class User extends Authenticatable
         'nim',      // Added 'nim'
         'nidn',     // Added 'nidn'
         'nip',      // Added 'nip'
+        'status',
+        'semester'
     ];
 
     /**

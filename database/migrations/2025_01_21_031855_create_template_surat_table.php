@@ -12,7 +12,7 @@ return new class extends Migration {
             $table->string('judul');
             $table->string('lampiran');
             $table->string('perihal')->nullable();
-            $table->string('kepada_yth');
+            $table->string('kepada_yth')->nullable();
             $table->string('pembuka')->nullable();
             $table->string('teks_atas')->nullable();
             $table->json('konten');

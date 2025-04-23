@@ -20,9 +20,9 @@
     <div class="container">
         <!-- Kop Surat -->
         <div class="header">
-            <img src="{{ public_path('logo.png') }}" alt="Logo Instansi">
-            
+            <img src="{{ asset('img/phb.png') }}" alt="Logo Instansi">
         </div>
+
 
         <!-- Judul Surat -->
         <div class="title">
