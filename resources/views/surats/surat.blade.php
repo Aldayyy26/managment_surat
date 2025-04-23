@@ -33,6 +33,9 @@
         <!-- Isi Surat -->
         <div class="content">
             <p><strong>{{ $pengajuanSurat->template->pembuka }}</strong></p>
+            </p><p><strong>{{ $konten['nama'] ?? '-' }}</strong></p>
+            </p><p><strong>{{ $konten['nim'] ?? '-' }}</strong></p>
+            </p><p><strong>{{ $konten['prodi'] ?? '-' }}</strong></p>
             <p><strong>{{ $pengajuanSurat->template->teks_atas }}</strong></p><p><strong>{{ $konten['nama judul'] ?? '-' }}</strong></p><p><strong>{{ $pengajuanSurat->template->teks_bawah }}</strong></p>
             <p><strong>{{ $pengajuanSurat->template->penutup }}</strong></p>
         </div>
