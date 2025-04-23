@@ -19,6 +19,8 @@ return new class extends Migration
             $table->string('nip')->nullable();      // Added 'nip'
             $table->string('avatar')->nullable();   // Optional, in case avatar is empty
             $table->string('email')->unique();
+            $table->enum('status', ['aktif', 'nonaktif']); // Diubah jadi enum
+            $table->string('semester')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();

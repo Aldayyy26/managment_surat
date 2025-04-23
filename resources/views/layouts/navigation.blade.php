@@ -37,6 +37,11 @@
                     {{ __('Setujui Surat') }}
                 </x-nav-link>
             @endcan
+            @can('manage stempel')
+                <x-nav-link :href="route('stempels.index')" :active="request()->routeIs('stempels.index')">
+                    {{ __('Manage Stempel') }}
+                </x-nav-link>
+            @endcan
             <!-- Settings Dropdown -->
             <div class="hidden sm:flex sm:items-center sm:ms-6">
                 <x-dropdown align="right" width="48">

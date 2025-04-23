@@ -22,7 +22,8 @@ class RolePermissionSeeder extends Seeder
             'manage history surat',
             'manage_users',
             'manage_apply_surat',
-            'manage approval surat'
+            'manage approval surat',
+            'manage stempel'
         ];
 
         // Create or find permissions
@@ -37,22 +38,26 @@ class RolePermissionSeeder extends Seeder
         $mahasiswaPermissions = ['manage_apply_surat', 'manage history surat'];
         $mahasiswaRole->syncPermissions($mahasiswaPermissions);
 
+        $dosenRole = Role::firstOrCreate(['name' => 'dosen']);
+        $dosenPermissions = ['manage_apply_surat', 'manage history surat'];
+        $dosenRole->syncPermissions($dosenPermissions);
+
         $adminprodiRole = Role::firstOrCreate(['name' => 'adminprodi']);
-        $adminprodiPermissions = ['manage surat' , 'manage_users'];
+        $adminprodiPermissions = ['manage surat' , 'manage_users', 'manage history surat'];
         $adminprodiRole->syncPermissions($adminprodiPermissions);
 
         $kepalaprodiRole = Role::firstOrCreate(['name' => 'kepalaprodi']);
-        $kepalaprodiPermissions = ['manage approval surat'];
+        $kepalaprodiPermissions = ['manage approval surat', 'manage stempel'];
         $kepalaprodiRole->syncPermissions($kepalaprodiPermissions);
 
         $superAdminRole = Role::firstOrCreate(['name' => 'super_admin']);
         $superAdminPermissions = [ 'manage approval surat',
         'manage history surat',
         'manage_users',
-        'manage_apply_surat',];
+        'manage_apply_surat',
+        'manage stempel'];
         $superAdminRole->syncPermissions($superAdminPermissions);
 
-        // Create a super admin user and assign the super admin role
         $user = User::firstOrCreate([
             'email' => 'super@admin.com'
         ], [

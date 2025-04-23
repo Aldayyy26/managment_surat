@@ -80,7 +80,7 @@
                         <!-- Roles -->
                         <div>
                             <label for="roles" class="block text-sm font-medium text-gray-700">Roles</label>
-                            <select id="roles" name="roles[]" multiple class="mt-2 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <select id="roles" name="roles" class="mt-2 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                                 @foreach ($roles as $role)
                                     <option value="{{ $role->name }}">{{ $role->name }}</option>
                                 @endforeach
@@ -103,29 +103,25 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-    const rolesSelect = document.getElementById('roles');
-    const nimField = document.getElementById('nim-field');
-    const nidnField = document.getElementById('nidn-field');
-    const nipField = document.getElementById('nip-field');
+            const rolesSelect = document.getElementById('roles');
+            const nimField = document.getElementById('nim-field');
+            const nidnField = document.getElementById('nidn-field');
+            const nipField = document.getElementById('nip-field');
 
-    function updateFieldVisibility() {
-        const selectedRoles = Array.from(rolesSelect.selectedOptions).map(option => option.value);
+            function updateFieldVisibility() {
+                const selectedRoles = [rolesSelect.value]; // karena single select
 
-        // Tampilkan kolom NIM jika role 'mahasiswa' dipilih
-        nimField.classList.toggle('hidden', !selectedRoles.includes('mahasiswa'));
+                nimField.classList.toggle('hidden', !selectedRoles.includes('mahasiswa'));
 
-        // Tampilkan kolom NIDN dan NIP jika role 'adminprodi' atau 'kepalaprodi' dipilih
-        const isProdi = selectedRoles.includes('adminprodi') || selectedRoles.includes('kepalaprodi');
-        nidnField.classList.toggle('hidden', !isProdi);
-        nipField.classList.toggle('hidden', !isProdi);
-    }
+                const isProdi = selectedRoles.includes('adminprodi') || 
+                                selectedRoles.includes('kepalaprodi') || 
+                                selectedRoles.includes('dosen');
+                nidnField.classList.toggle('hidden', !isProdi);
+                nipField.classList.toggle('hidden', !isProdi);
+            }
 
-    // Jalankan fungsi saat ada perubahan pada select
-    rolesSelect.addEventListener('change', updateFieldVisibility);
-
-    // Jalankan fungsi saat halaman pertama kali dimuat
-    updateFieldVisibility();
-});
-
+            rolesSelect.addEventListener('change', updateFieldVisibility);
+            updateFieldVisibility();
+        });
     </script>
 </x-app-layout>

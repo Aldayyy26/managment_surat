@@ -15,7 +15,7 @@ class TemplateSuratController extends Controller
             $query->where('judul', 'like', '%' . $request->search . '%');
         }
 
-        $surats = $query->paginate(10); // Menggunakan pagination agar lebih baik
+        $surats = $query->paginate(10); 
         return view('surats.index', compact('surats'));
     }
 
@@ -28,45 +28,66 @@ class TemplateSuratController extends Controller
     {
         $request->validate([
             'judul' => 'required|string|max:255',
+            'lampiran' => 'required|string|max:255',
+            'perihal' => 'nullable|string|max:255',
+            'kepada_yth' => 'required|string|max:255',
+            'pembuka' => 'nullable|string|max:255',
+            'teks_atas' => 'nullable|string|max:255',
             'konten' => 'required|array',
             'konten.*.label' => 'required|string|max:255',
             'konten.*.type' => 'required|string|in:text,date,number,email,textarea,checkbox,radio,select',
             'konten.*.value' => 'nullable|string|max:255',
+            'teks_bawah' => 'nullable|string|max:255',
+            'penutup' => 'nullable|string|max:255',
         ]);
 
         TemplateSurat::create([
             'judul' => $request->judul,
+            'lampiran' => $request->lampiran,
+            'perihal' => $request->perihal,
+            'kepada_yth' => $request->kepada_yth,
+            'pembuka' => $request->pembuka,
+            'teks_atas' => $request->teks_atas,
             'konten' => json_encode($request->konten), 
+            'teks_bawah' => $request->teks_bawah,
+            'penutup' => $request->penutup,
         ]);
 
         return redirect()->route('surats.index')->with('success', 'Template surat berhasil dibuat.');
-    }
-
-    public function edit(TemplateSurat $surat)
-    {
-        return view('surats.edit', [
-            'surat' => $surat,
-            'konten' => json_decode($surat->konten, true) ?? [],
-        ]);
     }
 
     public function update(Request $request, TemplateSurat $surat)
     {
         $request->validate([
             'judul' => 'required|string|max:255',
+            'lampiran' => 'required|string|max:255',
+            'perihal' => 'nullable|string|max:255',
+            'kepada_yth' => 'required|string|max:255',
+            'pembuka' => 'nullable|string|max:255',
+            'teks_atas' => 'nullable|string|max:255',
             'konten' => 'required|array',
             'konten.*.label' => 'required|string|max:255',
             'konten.*.type' => 'required|string|in:text,date,number,email,textarea,checkbox,radio,select',
             'konten.*.value' => 'nullable|string|max:255',
+            'teks_bawah' => 'nullable|string|max:255',
+            'penutup' => 'nullable|string|max:255',
         ]);
 
         $surat->update([
             'judul' => $request->judul,
-            'konten' => json_encode($request->konten), 
+            'lampiran' => $request->lampiran,
+            'perihal' => $request->perihal,
+            'kepada_yth' => $request->kepada_yth,
+            'pembuka' => $request->pembuka,
+            'teks_atas' => $request->teks_atas,
+            'konten' => json_encode($request->konten),
+            'teks_bawah' => $request->teks_bawah,
+            'penutup' => $request->penutup,
         ]);
 
         return redirect()->route('surats.index')->with('success', 'Template surat berhasil diperbarui.');
     }
+
 
     public function destroy(TemplateSurat $surat)
     {

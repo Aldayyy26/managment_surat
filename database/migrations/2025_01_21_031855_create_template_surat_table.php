@@ -10,7 +10,14 @@ return new class extends Migration {
         Schema::create('template_surats', function (Blueprint $table) {
             $table->id();
             $table->string('judul');
-            $table->json('konten'); // Simpan konten dalam JSON
+            $table->string('lampiran');
+            $table->string('perihal')->nullable();
+            $table->string('kepada_yth');
+            $table->string('pembuka')->nullable();
+            $table->string('teks_atas')->nullable();
+            $table->json('konten');
+            $table->string('teks_bawah')->nullable();
+            $table->string('penutup')->nullable();
             $table->timestamps();
         });
     }

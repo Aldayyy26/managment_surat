@@ -56,7 +56,6 @@ class PengajuanSuratController extends Controller
         return redirect()->route('pengajuan-surat.index')->with('success', 'Pengajuan surat berhasil diajukan.');
     }
 
-    // app/Models/PengajuanSurat.php
     public function user()
     {
         return $this->belongsTo(User::class);

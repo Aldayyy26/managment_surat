@@ -9,7 +9,7 @@ class PengajuanSurat extends Model
 {
     use HasFactory;
 
-    protected $table = 'pengajuan_surats'; // Sesuaikan dengan nama tabel di database
+    protected $table = 'pengajuan_surats';
 
     protected $fillable = [
         'user_id', 'template_id', 'konten', 'status', 'signature'
@@ -17,7 +17,7 @@ class PengajuanSurat extends Model
     
 
     protected $casts = [
-        'konten' => 'array', // Jika 'konten' disimpan sebagai JSON
+        'konten' => 'array', 
     ];
 
     public function user()

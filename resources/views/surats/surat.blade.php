@@ -21,22 +21,17 @@
         <!-- Kop Surat -->
         <div class="header">
             <img src="{{ public_path('logo.png') }}" alt="Logo Instansi">
-            <h2>PEMERINTAHAN KOTA XYZ</h2>
-            <h3>DINAS XYZ</h3>
-            <p>Jl. Contoh No. 123, Kota XYZ, Telp: (021) 12345678</p>
-            <div class="line"></div>
+            
         </div>
 
         <!-- Judul Surat -->
         <div class="title">
-            <h3><u>SURAT PERSETUJUAN</u></h3>
             <p>Nomor: 123/ABC/2024</p>
         </div>
 
         <!-- Isi Surat -->
         <div class="content">
-            <p>Kepada Yth,</p>
-            <p><strong>{{ $pengajuanSurat->user->name }}</strong></p>
+            <p>Kepada Yth,</p> <p><strong>{{ $pengajuanSurat->template->kepada_yth }}</strong></p>
             <p>Di Tempat</p>
 
             <p>Dengan ini kami menyetujui permohonan surat yang diajukan dengan rincian sebagai berikut:</p>

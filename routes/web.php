@@ -7,40 +7,44 @@ use App\Http\Controllers\ApproveController;
 use App\Http\Controllers\TemplateSuratController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\PengajuanSuratController;
+use App\Http\Controllers\StempelController;
 
 // Halaman Utama
 Route::get('/', [FrontController::class, 'index'])->name('frontend.index'); 
+
 // Dashboard (Harus Login & Terverifikasi)
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
 });
 
-// Approve Section (Harus Login)
+// Semua route yang butuh login
 Route::middleware(['auth'])->group(function () {
+    // Approve Section
+
+    Route::resource('stempels', StempelController::class);
+
     Route::get('/approve', [ApproveController::class, 'index'])->name('approve.index');
     Route::patch('/approve/{pengajuanSurat}/diterima', [ApproveController::class, 'approve'])->name('approve.diterima');
     Route::patch('/approve/{pengajuanSurat}/ditolak', [ApproveController::class, 'reject'])->name('approve.ditolak');
-});
 
-Route::resource('surats', TemplateSuratController::class);
-
-Route::get('/get-template-fields/{id}', [TemplateSuratController::class, 'getTemplateFields']);
-// User Management (CRUD)
-Route::resource('users', UserController::class);
-// Pengajuan Surat (CRUD & Approval)
-
-Route::middleware(['auth'])->group(function () {
+    // Pengajuan Surat (CRUD + download)
     Route::resource('pengajuan-surat', PengajuanSuratController::class);
-    Route::post('/pengajuan-surat/{pengajuanSurat}/diterima', [ApproveController::class, 'approve'])->name('approve.diterima');
-    Route::post('/pengajuan-surat/{pengajuanSurat}/ditolak', [ApproveController::class, 'reject'])->name('approve.ditolak');
     Route::get('/pengajuan-surat/{pengajuanSurat}/download', [PengajuanSuratController::class, 'download'])->name('pengajuan-surat.download');
-});
 
-Route::middleware(['auth'])->group(function () {
+    // Profile
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // User Management
+    Route::resource('users', UserController::class);
 });
+
+// Template Surat
+Route::resource('surats', TemplateSuratController::class);
+Route::get('/get-template-fields/{id}', [TemplateSuratController::class, 'getTemplateFields']);
+
+// Auth route
 require __DIR__.'/auth.php';
