@@ -63,13 +63,13 @@ class PengajuanSuratController extends Controller
 
     public function download(PengajuanSurat $pengajuanSurat)
     {
-        // return $pengajuanSurat;
-
         if ($pengajuanSurat->status != 'diterima') {
-            return redirect()->route('pengajuan-surat.index')->with('error', 'Hanya surat yang telah disetujui yang dapat diunduh.');
+            return redirect()->route('pengajuan-surat.index')
+                ->with('error', 'Hanya surat yang telah disetujui yang dapat diunduh.');
         }
 
-        $pdf = Pdf::loadView('pengajuan_surat.surat_pdf', compact('pengajuanSurat'));
+        $pdf = Pdf::loadView('pengajuan_surat.surat_pdf', compact('pengajuanSurat'))
+                ->setPaper('a4', 'portrait');
 
         return $pdf->download('Surat_Pengajuan_' . $pengajuanSurat->id . '.pdf');
     }

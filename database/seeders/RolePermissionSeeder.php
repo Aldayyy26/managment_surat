@@ -43,11 +43,11 @@ class RolePermissionSeeder extends Seeder
         $dosenRole->syncPermissions($dosenPermissions);
 
         $adminprodiRole = Role::firstOrCreate(['name' => 'adminprodi']);
-        $adminprodiPermissions = ['manage surat' , 'manage_users', 'manage history surat'];
+        $adminprodiPermissions = ['manage surat' , 'manage_users', 'manage stempel'];
         $adminprodiRole->syncPermissions($adminprodiPermissions);
 
         $kepalaprodiRole = Role::firstOrCreate(['name' => 'kepalaprodi']);
-        $kepalaprodiPermissions = ['manage approval surat', 'manage stempel'];
+        $kepalaprodiPermissions = ['manage approval surat'];
         $kepalaprodiRole->syncPermissions($kepalaprodiPermissions);
 
         $superAdminRole = Role::firstOrCreate(['name' => 'super_admin']);

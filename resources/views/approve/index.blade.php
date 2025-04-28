@@ -94,7 +94,7 @@
         if (!signaturePad) {
             signaturePad = new SignaturePad(canvas, {
                 penColor: "#000000",
-                backgroundColor: "#ffffff",
+                backgroundColor: null,
                 minWidth: 1,
                 maxWidth: 3
             });
@@ -135,7 +135,7 @@
         return;
     }
 
-    const signatureData = signaturePad.toDataURL();
+    const signatureData = signaturePad.toDataURL('image/png');
 
     fetch(`/pengajuan-surat/${selectedSuratId}/diterima`, { 
         method: 'POST',
