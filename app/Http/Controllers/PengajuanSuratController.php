@@ -43,37 +43,41 @@ class PengajuanSuratController extends Controller
 
     private function sendWablasNotification($phoneNumber, $message)
     {
-        $url = "https://console.wablas.com/api/send-message";
+        $url = "https://gateway.poltektegal.ac.id/api/whatsapp/sendSingleMessage";
+
+        $username = "admin";
+        $password = "e-geteway123456!";
 
         $data = [
+            "key-gateway" => "UqyRJ7pujEyHK4PDWKZXNpMv3qKW9C",
             "phone" => $phoneNumber,
             "message" => $message,
-        ];
-
-        $headers = [
-            "Authorization: Bearer VIgCefPPbm",  // pastikan "Bearer " ada di depan token
-            "Content-Type: application/json",
+            "token_app" => "VIgCefPPbm",
         ];
 
         $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+        curl_setopt($ch, CURLOPT_USERPWD, "$username:$password");
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Content-Type: application/json',
+        ]);
+
         $response = curl_exec($ch);
         $err = curl_error($ch);
         curl_close($ch);
 
         if ($err) {
-            \Log::error("Wablas API Error: " . $err);
+            \Log::error("WhatsApp Gateway API Error: " . $err);
             return false;
         } else {
-            \Log::info("Wablas API Response: " . $response);
+            \Log::info("WhatsApp Gateway API Response: " . $response);
         }
 
         return $response;
     }
-
 
     public function store(Request $request)
     {
