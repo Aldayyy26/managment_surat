@@ -9,8 +9,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
-class UserController extends Controller {
-
+class UserController extends Controller
+{
     public function index(Request $request)
     {
         $query = User::with('roles');
@@ -25,12 +25,10 @@ class UserController extends Controller {
             $query->where('nim', 'like', '%' . $request->search_nim . '%');
         }
 
-        // Fetch the filtered users
         $users = $query->get();
 
         return view('Users.index', compact('users'));
     }
-
 
     public function create()
     {
@@ -48,12 +46,13 @@ class UserController extends Controller {
             'nim' => 'nullable|string|max:255',
             'nidn' => 'nullable|string|max:255',
             'nip' => 'nullable|string|max:255',
-            'status' => 'required|in:aktif,nonaktif', // Validasi enum
+            'status' => 'required|in:aktif,nonaktif',
             'semester' => 'nullable|string|max:20',
-            'roles' => 'required|array',
+            'roles' => 'required|string', // ubah jadi string
+            'whatsapp_number' => 'nullable|string|max:20',
         ]);
 
-        $data = $request->only('name', 'email', 'nim', 'nidn', 'nip', 'status', 'semester');
+        $data = $request->only('name', 'email', 'nim', 'nidn', 'nip', 'status', 'semester', 'whatsapp_number');
 
         if ($request->hasFile('avatar')) {
             $data['avatar'] = $request->file('avatar')->store('avatars', 'public');
@@ -64,17 +63,11 @@ class UserController extends Controller {
         }
 
         $user = User::create($data);
+
+        // assignRole langsung string
         $user->assignRole($request->roles);
 
         return redirect()->route('users.index')->with('success', 'User created successfully.');
-    }
-
-
-    public function edit($id)
-    {
-        $user = User::findOrFail($id);
-        $roles = Role::all();
-        return view('Users.edit', compact('user', 'roles'));
     }
 
     public function update(Request $request, $id)
@@ -89,11 +82,12 @@ class UserController extends Controller {
             'nip' => 'nullable|string|max:255',
             'status' => 'required|in:aktif,nonaktif',
             'semester' => 'nullable|string|max:20',
-            'roles' => 'required|array',
+            'roles' => 'required|string', // ubah jadi string
+            'whatsapp_number' => 'nullable|string|max:20',
         ]);
 
         $user = User::findOrFail($id);
-        $data = $request->only('name', 'email', 'nim', 'nidn', 'nip', 'status', 'semester');
+        $data = $request->only('name', 'email', 'nim', 'nidn', 'nip', 'status', 'semester', 'whatsapp_number');
 
         if ($request->hasFile('avatar')) {
             if ($user->avatar) {
@@ -107,18 +101,25 @@ class UserController extends Controller {
         }
 
         $user->update($data);
-        $roles = Role::whereIn('id', $request->roles)->pluck('name')->toArray();
-        $user->syncRoles($roles);
+
+        // syncRoles dengan array 1 elemen
+        $user->syncRoles([$request->roles]);
 
         return redirect()->route('users.index')->with('success', 'User updated successfully.');
     }
 
 
+    public function edit($id)
+    {
+        $user = User::findOrFail($id);
+        $roles = Role::all();
+        return view('Users.edit', compact('user', 'roles'));
+    }
+
     public function destroy($id)
     {
         $user = User::findOrFail($id);
 
-        // Delete avatar if it exists
         if ($user->avatar) {
             Storage::disk('public')->delete($user->avatar);
         }

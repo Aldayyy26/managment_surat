@@ -14,12 +14,12 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('nim')->nullable();      // Added 'nim'
-            $table->string('nidn')->nullable();     // Added 'nidn'
-            $table->string('nip')->nullable();      // Added 'nip'
-            $table->string('avatar')->nullable();   // Optional, in case avatar is empty
+            $table->string('nim')->nullable();      
+            $table->string('nidn')->nullable();     
+            $table->string('nip')->nullable();     
+            $table->string('avatar')->nullable();  
             $table->string('email')->unique();
-            $table->enum('status', ['aktif', 'nonaktif']); // Diubah jadi enum
+            $table->enum('status', ['aktif', 'nonaktif']);
             $table->string('semester')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');

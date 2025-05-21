@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Log;
+use Spatie\Permission\Models\Role;
 
 
 
@@ -39,6 +41,40 @@ class PengajuanSuratController extends Controller
         return view('pengajuan_surat.create', compact('templates'));
     }
 
+    private function sendWablasNotification($phoneNumber, $message)
+    {
+        $url = "https://console.wablas.com/api/send-message";
+
+        $data = [
+            "phone" => $phoneNumber,
+            "message" => $message,
+        ];
+
+        $headers = [
+            "Authorization: Bearer VIgCefPPbm",  // pastikan "Bearer " ada di depan token
+            "Content-Type: application/json",
+        ];
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+        $response = curl_exec($ch);
+        $err = curl_error($ch);
+        curl_close($ch);
+
+        if ($err) {
+            \Log::error("Wablas API Error: " . $err);
+            return false;
+        } else {
+            \Log::info("Wablas API Response: " . $response);
+        }
+
+        return $response;
+    }
+
+
     public function store(Request $request)
     {
         $request->validate([
@@ -46,14 +82,34 @@ class PengajuanSuratController extends Controller
             'konten' => 'required|array',
         ]);
 
-        PengajuanSurat::create([
+        $pengajuan = PengajuanSurat::create([
             'user_id' => Auth::id(),
             'template_id' => $request->template_id,
             'konten' => json_encode($request->konten),
             'status' => 'proses',
         ]);
 
-        return redirect()->route('pengajuan-surat.index')->with('success', 'Pengajuan surat berhasil diajukan.');
+        $kaprodis = User::role('kepalaprodi')->get();
+
+        $user = Auth::user();
+        $template = TemplateSurat::find($request->template_id);
+
+        foreach ($kaprodis as $kaprodi) {
+            $phone = $kaprodi->whatsapp_number;
+
+            if (!$phone) {
+                \Log::warning("User {$kaprodi->id} role kepalaprodi tidak punya nomor whatsapp");
+                continue;
+            }
+
+            $message = "Halo {$kaprodi->name}, ada pengajuan surat baru dari {$user->name}.\n" .
+                       "Jenis Surat: {$template->judul}\n" .
+                       "Silakan cek aplikasi untuk melakukan approval.";
+
+            $this->sendWablasNotification($phone, $message);
+        }
+
+        return redirect()->route('pengajuan-surat.index')->with('success', 'Pengajuan surat berhasil diajukan dan notifikasi terkirim.');
     }
 
     public function user()

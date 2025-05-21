@@ -24,6 +24,15 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'wablas' => [
+        'token' => env('WABLAS_TOKEN'),
+        'key_gateway' => env('WABLAS_KEY_GATEWAY'),
+        'username' => env('WABLAS_USERNAME'),
+        'password' => env('WABLAS_PASSWORD'),
+    ],
+
+
+
     'resend' => [
         'key' => env('RESEND_KEY'),
     ],

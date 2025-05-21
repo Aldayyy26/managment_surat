@@ -31,6 +31,17 @@
                             @enderror
                         </div>
 
+                        <!-- WhatsApp Number -->
+                        <div>
+                            <label for="whatsapp_number" class="block text-sm font-medium text-gray-700">Nomor WhatsApp</label>
+                            <input type="text" id="whatsapp_number" name="whatsapp_number" class="mt-2 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" value="{{ old('whatsapp_number') }}">
+                            <small class="text-gray-500">Contoh: 6281234567890</small>
+                            @error('whatsapp_number')
+                                <span class="text-red-600 text-sm mt-1">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+
                         <!-- Password -->
                         <div>
                             <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
@@ -70,15 +81,14 @@
 
                         <!-- NIP -->
                         <div class="hidden" id="nip-field">
-                            <label for="nip" class="block text-sm font-medium text-gray-700">NIP</label>
+                            <label for="nip" class="block text-sm font-medium text-gray-700">NIPY</label>
                             <input type="text" id="nip" name="nip" class="mt-2 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" value="{{ old('nip') }}">
                             @error('nip')
                                 <span class="text-red-600 text-sm mt-1">{{ $message }}</span>
                             @enderror
                         </div>
-
                         <!-- Semester -->
-                        <div>
+                        <div id="semester-field" class="hidden">
                             <label for="semester" class="block text-sm font-medium text-gray-700">Semester</label>
                             <select id="semester" name="semester" class="mt-2 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                                 @for ($i = 1; $i <= 14; $i++)
@@ -89,6 +99,7 @@
                                 <span class="text-red-600 text-sm mt-1">{{ $message }}</span>
                             @enderror
                         </div>
+
 
                         <!-- Status -->
                         <div>
@@ -114,8 +125,6 @@
                                 <span class="text-red-600 text-sm mt-1">{{ $message }}</span>
                             @enderror
                         </div>
-                    </div>
-
                     <!-- Action Buttons -->
                     <div class="flex justify-end gap-4 mt-8">
                         <button type="submit" class="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-sm hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500">Simpan</button>
@@ -132,21 +141,26 @@
             const nimField = document.getElementById('nim-field');
             const nidnField = document.getElementById('nidn-field');
             const nipField = document.getElementById('nip-field');
+            const semesterField = document.getElementById('semester-field');  // semester wrapper
 
             function updateFieldVisibility() {
-                const selectedRoles = [rolesSelect.value]; // karena single select
+                const selectedRole = rolesSelect.value; // karena single select
 
-                nimField.classList.toggle('hidden', !selectedRoles.includes('mahasiswa'));
+                // nim muncul kalau role mahasiswa
+                nimField.classList.toggle('hidden', selectedRole !== 'mahasiswa');
 
-                const isProdi = selectedRoles.includes('adminprodi') || 
-                                selectedRoles.includes('kepalaprodi') || 
-                                selectedRoles.includes('dosen');
+                // nidn dan nip muncul kalau role salah satu dari adminprodi, kepalaprodi, dosen
+                const isProdi = ['adminprodi', 'kepalaprodi', 'dosen'].includes(selectedRole);
                 nidnField.classList.toggle('hidden', !isProdi);
                 nipField.classList.toggle('hidden', !isProdi);
+
+                // semester muncul kalau role mahasiswa, sebaliknya disembunyikan
+                semesterField.classList.toggle('hidden', selectedRole !== 'mahasiswa');
             }
 
             rolesSelect.addEventListener('change', updateFieldVisibility);
             updateFieldVisibility();
         });
+
     </script>
 </x-app-layout>

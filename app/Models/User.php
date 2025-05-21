@@ -26,7 +26,8 @@ class User extends Authenticatable
         'nidn',     // Added 'nidn'
         'nip',      // Added 'nip'
         'status',
-        'semester'
+        'semester',
+        'whatsapp_number'
     ];
 
     /**
