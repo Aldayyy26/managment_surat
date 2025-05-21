@@ -8,6 +8,7 @@ use App\Http\Controllers\TemplateSuratController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\PengajuanSuratController;
 use App\Http\Controllers\StempelController;
+use App\Http\Controllers\ReportController;
 
 // Halaman Utama
 Route::get('/', [FrontController::class, 'index'])->name('frontend.index'); 
@@ -19,6 +20,7 @@ Route::middleware(['auth'])->group(function () {
     })->name('dashboard');
 });
 
+Route::get('/admin/report', [ReportController::class, 'history'])->name('admin.report');
 // Semua route yang butuh login
 Route::middleware(['auth'])->group(function () {
     // Approve Section

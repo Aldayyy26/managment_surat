@@ -32,6 +32,11 @@
                     {{ __('Histori Surat') }}
                 </x-nav-link>
             @endcan
+            @can('manage report')
+                <x-nav-link :href="route('admin.report')" :active="request()->routeIs('admin.report')">
+                    {{ __('Laporan Surat') }}
+                </x-nav-link>
+            @endcan
             @can('manage approval surat')
                 <x-nav-link :href="route('approve.index')" :active="request()->routeIs('approve.index')">
                     {{ __('Setujui Surat') }}
