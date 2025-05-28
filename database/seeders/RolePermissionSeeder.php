@@ -34,7 +34,6 @@ class RolePermissionSeeder extends Seeder
             ]);
         }
 
-        // Create or find roles and assign permissions
         $mahasiswaRole = Role::firstOrCreate(['name' => 'mahasiswa']);
         $mahasiswaPermissions = ['manage_apply_surat', 'manage history surat'];
         $mahasiswaRole->syncPermissions($mahasiswaPermissions);
