@@ -15,38 +15,40 @@
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+
+                    @can('manage surat')
+                    <x-nav-link :href="route('surats.index')" :active="request()->routeIs('surats.index')">
+                        {{ __('Manage Surat') }}
+                    </x-nav-link>
+                    @endcan
+                    @can('manage_users')
+                    <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.index')">
+                        {{ __('Pengguna') }}
+                    </x-nav-link>
+                    @endcan
+                    @can('manage history surat')
+                    <x-nav-link :href="route('pengajuan-surat.index')" :active="request()->routeIs('pengajuan-surat.index')">
+                        {{ __('Histori Surat') }}
+                    </x-nav-link>
+                    @endcan
+                    @can('manage report')
+                    <x-nav-link :href="route('admin.report')" :active="request()->routeIs('admin.report')">
+                        {{ __('Laporan Surat') }}
+                    </x-nav-link>
+                    @endcan
+                    @can('manage approval surat')
+                    <x-nav-link :href="route('approve.index')" :active="request()->routeIs('approve.index')">
+                        {{ __('Setujui Surat') }}
+                    </x-nav-link>
+                    @endcan
+                    @can('manage stempel')
+                    <x-nav-link :href="route('stempels.index')" :active="request()->routeIs('stempels.index')">
+                        {{ __('Manage Stempel') }}
+                    </x-nav-link>
+                    @endcan
                 </div>
             </div>
-            @can('manage surat')
-                <x-nav-link :href="route('surats.index')" :active="request()->routeIs('surats.index')">
-                    {{ __('Manage Surat') }}
-                </x-nav-link>
-            @endcan
-            @can('manage_users')
-                <x-nav-link :href="route('users.index')" :active="request()->routeIs('users.index')">
-                    {{ __('Pengguna') }}
-                </x-nav-link>
-            @endcan
-            @can('manage history surat')
-                <x-nav-link :href="route('pengajuan-surat.index')" :active="request()->routeIs('pengajuan-surat.index')">
-                    {{ __('Histori Surat') }}
-                </x-nav-link>
-            @endcan
-            @can('manage report')
-                <x-nav-link :href="route('admin.report')" :active="request()->routeIs('admin.report')">
-                    {{ __('Laporan Surat') }}
-                </x-nav-link>
-            @endcan
-            @can('manage approval surat')
-                <x-nav-link :href="route('approve.index')" :active="request()->routeIs('approve.index')">
-                    {{ __('Setujui Surat') }}
-                </x-nav-link>
-            @endcan
-            @can('manage stempel')
-                <x-nav-link :href="route('stempels.index')" :active="request()->routeIs('stempels.index')">
-                    {{ __('Manage Stempel') }}
-                </x-nav-link>
-            @endcan
+
             <!-- Settings Dropdown -->
             <div class="hidden sm:flex sm:items-center sm:ms-6">
                 <x-dropdown align="right" width="48">
@@ -72,7 +74,7 @@
                             @csrf
 
                             <x-dropdown-link :href="route('logout')"
-                                    onclick="event.preventDefault();
+                                onclick="event.preventDefault();
                                                 this.closest('form').submit();">
                                 {{ __('Log Out') }}
                             </x-dropdown-link>
@@ -118,7 +120,7 @@
                     @csrf
 
                     <x-responsive-nav-link :href="route('logout')"
-                            onclick="event.preventDefault();
+                        onclick="event.preventDefault();
                                         this.closest('form').submit();">
                         {{ __('Log Out') }}
                     </x-responsive-nav-link>

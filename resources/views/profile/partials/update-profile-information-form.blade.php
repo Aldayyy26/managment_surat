@@ -17,36 +17,62 @@
         @csrf
         @method('patch')
 
+        <!-- Name (Non-editable) -->
         <div>
             <x-input-label for="name" :value="__('Name')" />
-            <x-text-input id="name" name="name" type="text" class="mt-1 block w-full" :value="old('name', $user->name)" required autofocus autocomplete="name" />
-            <x-input-error class="mt-2" :messages="$errors->get('name')" />
+            <x-text-input id="name" name="name" type="text" class="mt-1 block w-full bg-gray-100" :value="$user->name" disabled />
         </div>
 
+        <!-- Email (Non-editable) -->
         <div>
             <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" :value="old('email', $user->email)" required autocomplete="username" />
-            <x-input-error class="mt-2" :messages="$errors->get('email')" />
-
-            @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! $user->hasVerifiedEmail())
-                <div>
-                    <p class="text-sm mt-2 text-gray-800">
-                        {{ __('Your email address is unverified.') }}
-
-                        <button form="send-verification" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                            {{ __('Click here to re-send the verification email.') }}
-                        </button>
-                    </p>
-
-                    @if (session('status') === 'verification-link-sent')
-                        <p class="mt-2 font-medium text-sm text-green-600">
-                            {{ __('A new verification link has been sent to your email address.') }}
-                        </p>
-                    @endif
-                </div>
-            @endif
+            <x-text-input id="email" name="email" type="email" class="mt-1 block w-full bg-gray-100" :value="$user->email" disabled />
         </div>
 
+        <!-- WhatsApp (Editable) -->
+        <div>
+            <x-input-label for="whatsapp_number" :value="__('WhatsApp Number')" />
+            <x-text-input id="whatsapp_number" name="whatsapp_number" type="text" class="mt-1 block w-full" :value="old('whatsapp_number', $user->whatsapp_number)" autocomplete="tel" />
+            <x-input-error class="mt-2" :messages="$errors->get('whatsapp_number')" />
+        </div>
+
+        <!-- Tambahkan pengecekan role -->
+
+        @hasrole('mahasiswa')
+            <!-- NIM -->
+            <div>
+                <x-input-label for="nim" :value="__('NIM')" />
+                <x-text-input id="nim" type="text" class="mt-1 block w-full bg-gray-100" :value="$user->nim" disabled />
+            </div>
+
+            <!-- Semester -->
+            <div>
+                <x-input-label for="semester" :value="__('Semester')" />
+                <x-text-input id="semester" type="text" class="mt-1 block w-full bg-gray-100" :value="$user->semester" disabled />
+            </div>
+        @endhasrole
+
+        @hasanyrole('adminprodi|kepalaprodi|dosen')
+            <!-- NIDN -->
+            <div>
+                <x-input-label for="nidn" :value="__('NIDN')" />
+                <x-text-input id="nidn" type="text" class="mt-1 block w-full bg-gray-100" :value="$user->nidn" disabled />
+            </div>
+
+            <!-- NIP -->
+            <div>
+                <x-input-label for="nip" :value="__('NIP')" />
+                <x-text-input id="nip" type="text" class="mt-1 block w-full bg-gray-100" :value="$user->nip" disabled />
+            </div>
+        @endhasanyrole
+
+        <!-- Status -->
+        <div>
+            <x-input-label for="status" :value="__('Status')" />
+            <x-text-input id="status" type="text" class="mt-1 block w-full bg-gray-100" :value="$user->status" disabled />
+        </div>
+
+        <!-- Tombol -->
         <div class="flex items-center gap-4">
             <x-primary-button>{{ __('Save') }}</x-primary-button>
 
