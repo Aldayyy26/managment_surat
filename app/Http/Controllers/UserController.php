@@ -48,8 +48,8 @@ class UserController extends Controller
             'nip' => 'nullable|string|max:255',
             'status' => 'required|in:aktif,nonaktif',
             'semester' => 'nullable|string|max:20',
-            'roles' => 'required|string', // ubah jadi string
-            'whatsapp_number' => 'nullable|string|max:20',
+            'roles' => 'required|string', 
+            'whatsapp_number' => 'nullable|string|max:20|unique:users,whatsapp_number',
         ]);
 
         $data = $request->only('name', 'email', 'nim', 'nidn', 'nip', 'status', 'semester', 'whatsapp_number');
@@ -83,7 +83,7 @@ class UserController extends Controller
             'status' => 'required|in:aktif,nonaktif',
             'semester' => 'nullable|string|max:20',
             'roles' => 'required|string', // ubah jadi string
-            'whatsapp_number' => 'nullable|string|max:20',
+            'whatsapp_number' => 'nullable|string|max:20|unique:users,whatsapp_number',
         ]);
 
         $user = User::findOrFail($id);

@@ -66,7 +66,7 @@ class RolePermissionSeeder extends Seeder
             'nim' => '12345678',
             'avatar' => 'images/default-avatar.png',
             'password' => Hash::make('12345678'),
-            
+            'whatsapp_number' => '62812345678'
         ]);
 
         $user->assignRole($superAdminRole);
