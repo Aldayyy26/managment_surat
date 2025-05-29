@@ -14,7 +14,9 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <!-- Search Form -->
             <div class="mb-4">
-                <form method="GET" action="{{ route('users.index') }}" class="flex gap-4">
+                <div class="flex justify-end">
+                    <form method="GET" action="{{ route('users.index') }}" class="flex flex-wrap sm:flex-nowrap gap-4">
+
                     <input type="text" name="search_name" placeholder="Cari berdasarkan nama" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" value="{{ request()->get('search_name') }}">
                     <input type="text" name="search_nim" placeholder="Cari berdasarkan NIM" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" value="{{ request()->get('search_nim') }}">
                     <button type="submit" class="px-6 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition duration-300">
@@ -26,6 +28,7 @@
                         </a>
                     @endif
                 </form>
+                </div>
             </div>
 
             <div class="bg-white shadow-lg rounded-lg overflow-hidden">

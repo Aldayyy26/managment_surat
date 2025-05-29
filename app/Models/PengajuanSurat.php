@@ -27,6 +27,6 @@ class PengajuanSurat extends Model
 
     public function template()
     {
-        return $this->belongsTo(TemplateSurat::class);
+        return $this->belongsTo(TemplateSurat::class); 
     }
 }

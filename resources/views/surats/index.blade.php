@@ -13,6 +13,7 @@
     <div class="py-8">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <!-- Search Form -->
+            <div class="flex justify-end">
             <div class="mb-4">
                 <form method="GET" action="{{ route('surats.index') }}" class="flex gap-4">
                     <input type="text" name="search" placeholder="Cari berdasarkan nama" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" value="{{ request()->get('search') }}">
@@ -25,6 +26,7 @@
                         </a>
                     @endif
                 </form>
+            </div>
             </div>
 
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">

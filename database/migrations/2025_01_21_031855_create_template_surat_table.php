@@ -16,7 +16,7 @@ return new class extends Migration {
             $table->string('pembuka')->nullable();
             $table->string('teks_atas')->nullable();
             $table->json('konten');
-            $table->string('teks_bawah')->nullable();
+            $table->string(' teks_bawah')->nullable();
             $table->string('penutup')->nullable();
             $table->timestamps();
         });

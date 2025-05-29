@@ -14,22 +14,67 @@
 
                     {{-- Form filter pengaju --}}
                     <form method="GET" action="{{ route('admin.report') }}" class="mb-6">
-                        <label for="pengaju" class="block text-gray-700 font-semibold mb-2">Siapa Pengaju:</label>
-                        <input
-                            type="text"
-                            name="pengaju"
-                            id="pengaju"
-                            value="{{ request('pengaju') }}"
-                            placeholder="Masukkan nama pengaju"
-                            class="border border-gray-300 rounded-md px-4 py-2 w-full max-w-sm"
-                        />
-                        <button
-                            type="submit"
-                            class="mt-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
-                        >
-                            Cari
-                        </button>
+                        <div class="flex flex-col sm:flex-row sm:justify-end sm:items-end gap-4">
+                            <div>
+                                <label for="pengaju" class="block text-gray-700 font-semibold mb-1">Pengaju:</label>
+                                <input
+                                    type="text"
+                                    name="pengaju"
+                                    id="pengaju"
+                                    value="{{ request('pengaju') }}"
+                                    placeholder="Nama pengaju"
+                                    class="border border-gray-300 rounded-md px-4 py-2 w-full sm:w-52"
+                                />
+                            </div>
+
+                            <div>
+                                <label for="judul" class="block text-gray-700 font-semibold mb-1">Judul Surat:</label>
+                                <input
+                                    type="text"
+                                    name="judul"
+                                    id="judul"
+                                    value="{{ request('judul') }}"
+                                    placeholder="Judul surat"
+                                    class="border border-gray-300 rounded-md px-4 py-2 w-full sm:w-52"
+                                />
+                            </div>
+
+                            <div>
+                                <label for="status" class="block text-gray-700 font-semibold mb-1">Status:</label>
+                                <select
+                                    name="status"
+                                    id="status"
+                                    class="border border-gray-300 rounded-md px-4 py-2 w-full sm:w-40"
+                                >
+                                    <option value="">Semua</option>
+                                    <option value="menunggu" {{ request('status') == 'menunggu' ? 'selected' : '' }}>Menunggu</option>
+                                    <option value="disetujui" {{ request('status') == 'disetujui' ? 'selected' : '' }}>Disetujui</option>
+                                    <option value="ditolak" {{ request('status') == 'ditolak' ? 'selected' : '' }}>Ditolak</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label for="tanggal" class="block text-gray-700 font-semibold mb-1">Tanggal:</label>
+                                <input
+                                    type="date"
+                                    name="tanggal"
+                                    id="tanggal"
+                                    value="{{ request('tanggal') }}"
+                                    class="border border-gray-300 rounded-md px-4 py-2 w-full sm:w-48"
+                                />
+                            </div>
+
+                            <div>
+                                <button
+                                    type="submit"
+                                    class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 mt-1 sm:mt-6"
+                                >
+                                    Cari
+                                </button>
+                            </div>
+                        </div>
                     </form>
+
 
                     @if(session('success'))
                         <div class="bg-green-100 text-green-700 p-4 rounded-md mb-4">

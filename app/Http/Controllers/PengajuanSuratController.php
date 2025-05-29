@@ -18,9 +18,23 @@ class PengajuanSuratController extends Controller
 {
     use HasFactory;
 
-    public function index()
+    public function index(Request $request)
     {
-        $pengajuanSurats = PengajuanSurat::where('user_id', Auth::id())->get();
+        $query = PengajuanSurat::with('template')
+                    ->where('user_id', Auth::id());
+
+        if ($request->filled('judul')) {
+            $query->whereHas('template', function ($q) use ($request) {
+                $q->where('judul', 'like', '%' . $request->judul . '%');
+            });
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $pengajuanSurats = $query->latest()->get();
+
         return view('pengajuan_surat.index', compact('pengajuanSurats'));
     }
 
