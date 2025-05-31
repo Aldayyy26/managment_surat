@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Stempel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class StempelController extends Controller
 {
@@ -26,11 +27,19 @@ class StempelController extends Controller
             'gambar' => 'required|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        $path = $request->file('gambar')->store('stempels', 'public');
+        $file = $request->file('gambar');
+
+        $filename = Str::random(20) . '.png';
+
+        $tmpPath = $file->getPathname();
+
+        $storagePath = storage_path('app/public/stempels/' . $filename);
+
+        $this->removeWhiteBackgroundAndSaveAsPng($tmpPath, $storagePath);
 
         Stempel::create([
             'nama' => $request->nama,
-            'gambar' => $path,
+            'gambar' => 'stempels/' . $filename,
         ]);
 
         return redirect()->route('stempels.index')->with('success', 'Stempel berhasil ditambahkan.');
@@ -48,16 +57,21 @@ class StempelController extends Controller
             'gambar' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
+        $stempel->nama = $request->nama;
+
         if ($request->hasFile('gambar')) {
-            // Hapus gambar lama
             Storage::disk('public')->delete($stempel->gambar);
 
-            // Upload gambar baru
-            $path = $request->file('gambar')->store('stempels', 'public');
-            $stempel->gambar = $path;
+            $file = $request->file('gambar');
+            $filename = Str::random(20) . '.png';
+            $tmpPath = $file->getPathname();
+            $storagePath = storage_path('app/public/stempels/' . $filename);
+
+            $this->removeWhiteBackgroundAndSaveAsPng($tmpPath, $storagePath);
+
+            $stempel->gambar = 'stempels/' . $filename;
         }
 
-        $stempel->nama = $request->nama;
         $stempel->save();
 
         return redirect()->route('stempels.index')->with('success', 'Stempel berhasil diperbarui.');
@@ -65,12 +79,53 @@ class StempelController extends Controller
 
     public function destroy(Stempel $stempel)
     {
-        // Hapus gambar dari storage
         Storage::disk('public')->delete($stempel->gambar);
-
-        // Hapus dari database
         $stempel->delete();
 
         return redirect()->route('stempels.index')->with('success', 'Stempel berhasil dihapus.');
+    }
+
+    private function removeWhiteBackgroundAndSaveAsPng($inputPath, $outputPath)
+    {
+        $info = getimagesize($inputPath);
+        $mime = $info['mime'];
+
+        if ($mime === 'image/png') {
+            $img = imagecreatefrompng($inputPath);
+        } elseif ($mime === 'image/jpeg') {
+            $img = imagecreatefromjpeg($inputPath);
+        } else {
+            copy($inputPath, $outputPath);
+            return;
+        }
+
+        $width = imagesx($img);
+        $height = imagesy($img);
+
+        $newImg = imagecreatetruecolor($width, $height);
+        imagesavealpha($newImg, true);
+        imagealphablending($newImg, false);
+
+        $transparent = imagecolorallocatealpha($newImg, 0, 0, 0, 127);
+        imagefill($newImg, 0, 0, $transparent);
+
+        for ($x = 0; $x < $width; $x++) {
+            for ($y = 0; $y < $height; $y++) {
+                $rgba = imagecolorat($img, $x, $y);
+                $colors = imagecolorsforindex($img, $rgba);
+
+                if ($colors['red'] > 240 && $colors['green'] > 240 && $colors['blue'] > 240) {
+                    imagesetpixel($newImg, $x, $y, $transparent);
+                } else {
+                    $color = imagecolorallocatealpha($newImg, $colors['red'], $colors['green'], $colors['blue'], 0);
+                    imagesetpixel($newImg, $x, $y, $color);
+                }
+            }
+        }
+
+        imagepng($newImg, $outputPath);
+
+        imagedestroy($img);
+        imagedestroy($newImg);
     }
 }
