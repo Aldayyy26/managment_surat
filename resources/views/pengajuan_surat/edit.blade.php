@@ -8,7 +8,7 @@
     <div class="py-12">
         <div class="max-w-5xl mx-auto px-6">
             <div class="bg-white shadow-lg rounded-lg p-8">
-                <form method="POST" action="{{ route('pengajuan-surat.update', $pengajuanSurat->id) }}">
+                <form method="POST" action="{{ route('pengajuan_surat.update', $pengajuanSurat->id) }}">
                     @csrf
                     @method('PUT')
 
@@ -33,7 +33,7 @@
                         <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-lg shadow-md hover:bg-blue-700 transition">
                             Simpan Perubahan
                         </button>
-                        <a href="{{ route('pengajuan-surat.index') }}" class="bg-gray-500 text-white px-6 py-3 rounded-lg shadow-md hover:bg-gray-600 transition">
+                        <a href="{{ route('pengajuan_surat.index') }}" class="bg-gray-500 text-white px-6 py-3 rounded-lg shadow-md hover:bg-gray-600 transition">
                             Batal
                         </a>
                     </div>

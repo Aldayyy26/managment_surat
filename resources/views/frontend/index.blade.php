@@ -58,7 +58,7 @@
       <ul>
         <li><a href="#hero" class="active">Home</a></li>
         <li class="dropdown">
-          <a href="{{ url('/pengajuan-surat/create') }}"><span>Layanan Surat</span></a>
+          <a href="{{ url('/pengajuan_surat/create') }}"><span>Layanan Surat</span></a>
         </li>
       </ul>
       <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>

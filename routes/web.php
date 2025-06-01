@@ -12,7 +12,6 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\KopSuratController;
 
 
-// Halaman Utama
 Route::get('/', [FrontController::class, 'index'])->name('frontend.index'); 
 
 
@@ -20,7 +19,6 @@ Route::get('/kop', [KopSuratController::class, 'index'])->name('kop.index');
 Route::get('/kop/edit', [KopSuratController::class, 'edit'])->name('kop.edit');
 Route::post('/kop/update', [KopSuratController::class, 'update'])->name('kop.update');
 
-// Dashboard (Harus Login & Terverifikasi)
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', function () {
         return view('dashboard');
@@ -28,22 +26,18 @@ Route::middleware(['auth'])->group(function () {
 });
 
 Route::get('/admin/report', [ReportController::class, 'history'])->name('admin.report');
-// Semua route yang butuh login
 Route::middleware(['auth'])->group(function () {
-    // Approve Section
 
     Route::resource('stempels', StempelController::class);
 
     Route::get('/approve', [ApproveController::class, 'index'])->name('approve.index');
-    Route::post('/pengajuan-surat/{pengajuanSurat}/diterima', [ApproveController::class, 'approve']);
-    Route::post('/pengajuan-surat/{pengajuanSurat}/ditolak', [ApproveController::class, 'reject']);
+    Route::post('/pengajuan_surat/{pengajuanSurat}/diterima', [ApproveController::class, 'approve']);
+    Route::post('/pengajuan_surat/{pengajuanSurat}/ditolak', [ApproveController::class, 'reject']);
 
+    Route::get('/pengajuan_surat/get-placeholders/{id}', [PengajuanSuratController::class, 'getPlaceholders'])->name('pengajuan_surat.get_placeholders');
+    Route::resource('pengajuan_surat', PengajuanSuratController::class);
+    Route::get('/pengajuan_surat/{pengajuanSurat}/download', [PengajuanSuratController::class, 'download'])->name('pengajuan_surat.download');
 
-    // Pengajuan Surat (CRUD + download)
-    Route::resource('pengajuan-surat', PengajuanSuratController::class);
-    Route::get('/pengajuan-surat/{pengajuanSurat}/download', [PengajuanSuratController::class, 'download'])->name('pengajuan-surat.download');
-
-    // Profile
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

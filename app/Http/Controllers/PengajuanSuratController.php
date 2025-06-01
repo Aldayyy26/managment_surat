@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Log;
-use PhpOffice\PhpWord\TemplateProcessor;
 use Spatie\Permission\Models\Role;
 
 
@@ -22,7 +21,7 @@ class PengajuanSuratController extends Controller
     public function index(Request $request)
     {
         $query = PengajuanSurat::with('template')
-            ->where('user_id', Auth::id());
+                    ->where('user_id', Auth::id());
 
         if ($request->filled('judul')) {
             $query->whereHas('template', function ($q) use ($request) {
@@ -39,6 +38,26 @@ class PengajuanSuratController extends Controller
         return view('pengajuan_surat.index', compact('pengajuanSurats'));
     }
 
+    public function getPlaceholders($id)
+    {
+        $template = TemplateSurat::findOrFail($id);
+
+        $raw = $template->required_placeholders;
+
+        if (!$raw) {
+            return response()->json([]);
+        }
+
+        $placeholders = json_decode($raw, true);
+
+        if (!is_array($placeholders)) {
+            return response()->json([], 400);
+        }
+
+        return response()->json($placeholders);
+    }
+
+
     public function approvalIndex()
     {
         // Fetch pengajuanSurat with the associated user and template
@@ -50,11 +69,13 @@ class PengajuanSuratController extends Controller
     }
 
 
-    public function create()
+   public function create()
     {
         $templates = TemplateSurat::all();
+
         return view('pengajuan_surat.create', compact('templates'));
     }
+
 
     private function sendWablasNotification($phoneNumber, $message)
     {
@@ -94,43 +115,24 @@ class PengajuanSuratController extends Controller
         return $response;
     }
 
+
     public function store(Request $request)
     {
-        // ambil template surat
-        $template = new TemplateProcessor(storage_path('app/public/surat_templates/2nTscnG644bteK06YQdL2G7AiV8BZmi0ID8pSAzi.docx'));
-        $template->setValue('${nomor_surat}', 'nomor_suratxxx');
-        $template->setValue('${judul_surat}', 'judul_suratxxx');
-        $template->setValue('${judul}', 'judulxxx');
-        $template->setValue('${kepada_yth}', 'kepada_ythxxx');
-        $template->setValue('${nama_mahasiswa}', 'nama_mahasiswaxxx');
-        $template->setValue('${nim_mahasiswa}', 'nim_mahasiswaxxx');
-        $template->setValue('${prodi_mahasiswa}', 'prodi_mahasiswaxxx');
-        $template->setValue('${tangalsekarang}', 'tangalsekarangxxx');
-        $template->setValue('${ttd}', 'ttdxxx');
-        $template->setValue('${stemple}', 'stempelxxx');
-        $template->setValue('${kaprodi}', 'kaprodixxx');
-        $template->setValue('${nipy_kaprodi}', 'nipykaprodixxx');
-
-        // Simpan hasil edit
-        $docPath = storage_path('app/public/output.docx');
-        $template->saveAs($docPath);
-
-        // nama pdf
-        $pdfPath = storage_path('app/public/output.pdf');
-
-        try {
-            // $command = "libreoffice --headless --convert-to pdf --outdir " . escapeshellarg(dirname($pdfPath)) . ' ' . escapeshellarg($docPath);
-            $command = "soffice --headless --convert-to pdf --outdir " . escapeshellarg(dirname($pdfPath)) . ' ' . escapeshellarg($docPath);
-            exec($command, $output, $resultCode);
-        } catch (\Throwable $th) {
-            return 'Gagal mengonversi dokumen ke PDF: ' . $th->getMessage();
-        }
-
-        return response()->download($pdfPath);
         $request->validate([
             'template_id' => 'required|exists:template_surats,id',
             'konten' => 'required|array',
         ]);
+
+        $template = TemplateSurat::findOrFail($request->template_id);
+        $placeholders = json_decode($template->required_placeholders, true);
+
+        foreach ($placeholders as $key => $config) {
+            if (!isset($request->konten[$key]) || empty($request->konten[$key])) {
+                return back()->withInput()->withErrors([
+                    "konten.{$key}" => "Field '{$config['label']}' wajib diisi.",
+                ]);
+            }
+        }
 
         $pengajuan = PengajuanSurat::create([
             'user_id' => Auth::id(),
@@ -140,9 +142,7 @@ class PengajuanSuratController extends Controller
         ]);
 
         $kaprodis = User::role('kepalaprodi')->get();
-
         $user = Auth::user();
-        $template = TemplateSurat::find($request->template_id);
 
         foreach ($kaprodis as $kaprodi) {
             $phone = $kaprodi->whatsapp_number;
@@ -153,14 +153,16 @@ class PengajuanSuratController extends Controller
             }
 
             $message = "Halo {$kaprodi->name}, ada pengajuan surat baru dari {$user->name}.\n" .
-                "Jenis Surat: {$template->judul}\n" .
-                "Silakan cek aplikasi untuk melakukan approval.";
+                    "Jenis Surat: {$template->judul}\n" .
+                    "Silakan cek aplikasi untuk melakukan approval.";
 
             $this->sendWablasNotification($phone, $message);
         }
 
-        return redirect()->route('pengajuan-surat.index')->with('success', 'Pengajuan surat berhasil diajukan dan notifikasi terkirim.');
+        return redirect()->route('pengajuan_surat.index')->with('success', 'Pengajuan surat berhasil diajukan dan notifikasi terkirim.');
     }
+
+    
 
     public function user()
     {
@@ -170,12 +172,12 @@ class PengajuanSuratController extends Controller
     public function download(PengajuanSurat $pengajuanSurat)
     {
         if ($pengajuanSurat->status != 'diterima') {
-            return redirect()->route('pengajuan-surat.index')
+            return redirect()->route('pengajuan_surat.index')
                 ->with('error', 'Hanya surat yang telah disetujui yang dapat diunduh.');
         }
 
         $pdf = Pdf::loadView('pengajuan_surat.surat_pdf', compact('pengajuanSurat'))
-            ->setPaper('a4', 'portrait');
+                ->setPaper('a4', 'portrait');
 
         return $pdf->download('Surat_Pengajuan_' . $pengajuanSurat->id . '.pdf');
     }
@@ -183,7 +185,7 @@ class PengajuanSuratController extends Controller
     public function edit(PengajuanSurat $pengajuanSurat)
     {
         if ($pengajuanSurat->user_id !== Auth::id() || $pengajuanSurat->status !== 'proses') {
-            return redirect()->route('pengajuan-surat.index')->with('error', 'Hanya surat dalam status pending yang dapat diedit.');
+            return redirect()->route('pengajuan_surat.index')->with('error', 'Hanya surat dalam status pending yang dapat diedit.');
         }
 
         $templates = TemplateSurat::all();
@@ -193,7 +195,7 @@ class PengajuanSuratController extends Controller
     public function update(Request $request, PengajuanSurat $pengajuanSurat)
     {
         if ($pengajuanSurat->user_id !== Auth::id() || $pengajuanSurat->status !== 'proses') {
-            return redirect()->route('pengajuan-surat.index')->with('error', 'Hanya surat dalam status pending yang dapat diperbarui.');
+            return redirect()->route('pengajuan_surat.index')->with('error', 'Hanya surat dalam status pending yang dapat diperbarui.');
         }
 
         $request->validate([
@@ -206,6 +208,6 @@ class PengajuanSuratController extends Controller
             'konten' => json_encode($request->konten),
         ]);
 
-        return redirect()->route('pengajuan-surat.index')->with('success', 'Pengajuan surat berhasil diperbarui.');
+        return redirect()->route('pengajuan_surat.index')->with('success', 'Pengajuan surat berhasil diperbarui.');
     }
 }

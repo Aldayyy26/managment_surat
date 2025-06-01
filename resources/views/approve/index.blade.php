@@ -137,7 +137,7 @@
 
     const signatureData = signaturePad.toDataURL('image/png');
 
-    fetch(`/pengajuan-surat/${selectedSuratId}/diterima`, { 
+    fetch(`/pengajuan_surat/${selectedSuratId}/diterima`, { 
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -176,7 +176,7 @@
 
 function rejectSurat(suratId) {
     if (confirm('Apakah Anda yakin ingin menolak surat ini?')) {
-        fetch(`/pengajuan-surat/${suratId}/ditolak`, {
+        fetch(`/pengajuan_surat/${suratId}/ditolak`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
