@@ -9,9 +9,16 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\PengajuanSuratController;
 use App\Http\Controllers\StempelController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\KopSuratController;
+
 
 // Halaman Utama
 Route::get('/', [FrontController::class, 'index'])->name('frontend.index'); 
+
+
+Route::get('/kop', [KopSuratController::class, 'index'])->name('kop.index');
+Route::get('/kop/edit', [KopSuratController::class, 'edit'])->name('kop.edit');
+Route::post('/kop/update', [KopSuratController::class, 'update'])->name('kop.update');
 
 // Dashboard (Harus Login & Terverifikasi)
 Route::middleware(['auth'])->group(function () {
@@ -32,8 +39,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/pengajuan-surat/{pengajuanSurat}/ditolak', [ApproveController::class, 'reject']);
 
 
-    // Pengajuan Surat (CRUD + download)
-    Route::resource('pengajuan-surat', PengajuanSuratController::class);
+    Route::get('/get-template-fields/{template}', [TemplateSuratController::class, 'getTemplateFields']);
     Route::get('/pengajuan-surat/{pengajuanSurat}/download', [PengajuanSuratController::class, 'download'])->name('pengajuan-surat.download');
 
     // Profile
@@ -45,9 +51,14 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('users', UserController::class);
 });
 
-// Template Surat
-Route::resource('surats', TemplateSuratController::class);
-Route::get('/get-template-fields/{id}', [TemplateSuratController::class, 'getTemplateFields']);
+Route::get('/surats', [TemplateSuratController::class, 'index'])->name('surats.index');
+Route::get('/surats/create', [TemplateSuratController::class, 'create'])->name('surats.create');
+Route::post('/surats/upload', [TemplateSuratController::class, 'upload'])->name('surats.upload');
+Route::get('/surats/{id}/select-placeholders', [TemplateSuratController::class, 'selectPlaceholdersForm'])->name('surats.selectPlaceholdersForm');
+Route::post('/surats/{id}/select-placeholders', [TemplateSuratController::class, 'selectPlaceholders'])->name('surats.selectPlaceholders');
+Route::get('/surats/{template}/edit', [TemplateSuratController::class, 'edit'])->name('surats.edit');
+Route::put('/surats/{template}', [TemplateSuratController::class, 'update'])->name('surats.update');
+Route::delete('/surats/{template}', [TemplateSuratController::class, 'destroy'])->name('surats.destroy');
 
 // Auth route
 require __DIR__.'/auth.php';

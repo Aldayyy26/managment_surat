@@ -46,6 +46,11 @@
                         {{ __('Manage Stempel') }}
                     </x-nav-link>
                     @endcan
+                    @can('manage kop')
+                    <x-nav-link :href="route('kop.index')" :active="request()->routeIs('kop.index')">
+                        {{ __('Manage Kop Surat') }}
+                    </x-nav-link>
+                    @endcan
                 </div>
             </div>
 

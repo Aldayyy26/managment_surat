@@ -4,6 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\TemplateSurat;
 use Illuminate\Http\Request;
+use PhpOffice\PhpWord\IOFactory;
+use PhpOffice\PhpWord\Element\Text;
+use PhpOffice\PhpWord\Element\TextRun;
+use PhpOffice\PhpWord\Element\Table;
+use PhpOffice\PhpWord\Element\Row;
+use PhpOffice\PhpWord\Element\Cell;
+use Spatie\Permission\Models\Role;
+use Illuminate\Validation\Rule;
 
 class TemplateSuratController extends Controller
 {
@@ -11,99 +19,166 @@ class TemplateSuratController extends Controller
     {
         $query = TemplateSurat::query();
 
-        if ($request->filled('search')) {
-            $query->where('judul', 'like', '%' . $request->search . '%');
+        if ($search = $request->get('search')) {
+            $query->where('nama_surat', 'like', "%$search%");
         }
 
-        $surats = $query->paginate(10); 
+        $surats = $query->latest()->paginate(10);
+
         return view('surats.index', compact('surats'));
     }
 
     public function create()
     {
-        return view('surats.create');
+        $userRoles = Role::whereIn('name', ['mahasiswa', 'dosen'])->pluck('name');
+
+        return view('surats.create', compact('userRoles'));
     }
 
-    public function store(Request $request)
+    public function upload(Request $request)
     {
+        $allowedRoles = Role::whereIn('name', ['mahasiswa', 'dosen'])->pluck('name')->toArray();
+
         $request->validate([
-            'judul' => 'required|string|max:255',
-            'lampiran' => 'required|string|max:255',
-            'perihal' => 'nullable|string|max:255',
-            'kepada_yth' => 'nullable|string|max:255',
-            'pembuka' => 'nullable|string|max:255',
-            'teks_atas' => 'nullable|string|max:255',
-            'konten' => 'required|array',
-            'konten.*.label' => 'required|string|max:255',
-            'konten.*.type' => 'required|string|in:text,date,number,email,textarea,checkbox,radio,select',
-            'konten.*.value' => 'nullable|string|max:255',
-            'teks_bawah' => 'nullable|string|max:255',
-            'penutup' => 'nullable|string|max:255',
+            'nama_surat' => 'required|string',
+            'user_type' => ['required', Rule::in($allowedRoles)],
+            'file_surat' => 'required|file|mimes:docx',
         ]);
 
-        TemplateSurat::create([
-            'judul' => $request->judul,
-            'lampiran' => $request->lampiran,
-            'perihal' => $request->perihal,
-            'kepada_yth' => $request->kepada_yth,
-            'pembuka' => $request->pembuka,
-            'teks_atas' => $request->teks_atas,
-            'konten' => json_encode($request->konten), 
-            'teks_bawah' => $request->teks_bawah,
-            'penutup' => $request->penutup,
-        ]);
+        $file = $request->file('file_surat');
+        $path = $file->store('surat_templates', 'public');
+        $fullPath = storage_path('app/public/' . $path);
 
-        return redirect()->route('surats.index')->with('success', 'Template surat berhasil dibuat.');
-    }
-
-    public function update(Request $request, TemplateSurat $surat)
-    {
-        $request->validate([
-            'judul' => 'required|string|max:255',
-            'lampiran' => 'required|string|max:255',
-            'perihal' => 'nullable|string|max:255',
-            'kepada_yth' => 'nullable|string|max:255',
-            'pembuka' => 'nullable|string|max:255',
-            'teks_atas' => 'nullable|string|max:255',
-            'konten' => 'required|array',
-            'konten.*.label' => 'required|string|max:255',
-            'konten.*.type' => 'required|string|in:text,date,number,email,textarea,checkbox,radio,select',
-            'konten.*.value' => 'nullable|string|max:255',
-            'teks_bawah' => 'nullable|string|max:255',
-            'penutup' => 'nullable|string|max:255',
-        ]);
-
-        $surat->update([
-            'judul' => $request->judul,
-            'lampiran' => $request->lampiran,
-            'perihal' => $request->perihal,
-            'kepada_yth' => $request->kepada_yth,
-            'pembuka' => $request->pembuka,
-            'teks_atas' => $request->teks_atas,
-            'konten' => json_encode($request->konten),
-            'teks_bawah' => $request->teks_bawah,
-            'penutup' => $request->penutup,
-        ]);
-
-        return redirect()->route('surats.index')->with('success', 'Template surat berhasil diperbarui.');
-    }
-
-
-    public function destroy(TemplateSurat $surat)
-    {
-        $surat->delete();
-        return redirect()->route('surats.index')->with('success', 'Template surat berhasil dihapus.');
-    }
-    public function getTemplateFields($id)
-    {
-        $template = TemplateSurat::find($id);
-
-        if (!$template) {
-            return response()->json(['error' => 'Template tidak ditemukan'], 404);
+        if (!file_exists($fullPath)) {
+            return back()->with('error', 'File gagal ditemukan setelah upload.');
         }
 
-        return response()->json(json_decode($template->konten, true));
-    }
-    
+        try {
+            $placeholders = $this->scanPlaceholders($fullPath);
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal membaca file Word: ' . $e->getMessage());
+        }
 
+        // Simpan dulu template dengan placeholders dan required_placeholders kosong
+        $template = TemplateSurat::create([
+            'nama_surat' => $request->nama_surat,
+            'file_path' => $path,
+            'placeholders' => $placeholders,
+            'required_placeholders' => json_encode([]),
+            'user_type' => $request->user_type,
+        ]);
+
+        // Redirect ke halaman pilih placeholder dengan id template
+        return redirect()->route('surats.selectPlaceholdersForm', $template->id)
+            ->with('success', 'File berhasil diupload, silakan pilih placeholder yang wajib diisi.');
+    }
+
+    public function selectPlaceholdersForm($id)
+    {
+        $template = TemplateSurat::findOrFail($id);
+
+        return view('surats.select_placeholders', ['template' => $template, 'placeholders' => $template->placeholders]);
+    }
+
+    public function selectPlaceholders(Request $request, $id)
+    {
+        $template = TemplateSurat::findOrFail($id);
+
+        $input = $request->input('required_placeholders', []);
+
+        $required_placeholders = [];
+
+        foreach ($input as $key => $data) {
+            if (!empty($data['required'])) {
+                $required_placeholders[$key] = [
+                    'label' => $data['label'] ?? $key,
+                    'type' => $data['type'] ?? 'text',
+                    'options' => isset($data['options']) ? array_map('trim', explode(',', $data['options'])) : [],
+                ];
+            }
+        }
+
+        $template->update([
+            'required_placeholders' => json_encode($required_placeholders),
+        ]);
+
+        return redirect()->route('surats.create')->with('success', 'Template surat berhasil disimpan dengan placeholder wajib.');
+    }
+
+
+    // --- Fungsi pembantu untuk scan placeholder sama seperti yang kamu punya ---
+    protected function scanPlaceholders($filePath)
+    {
+        $phpWord = IOFactory::load($filePath);
+        $texts = [];
+
+        foreach ($phpWord->getSections() as $section) {
+            foreach ($section->getElements() as $element) {
+                $texts = array_merge($texts, $this->extractTextFromElement($element));
+            }
+        }
+
+        $content = implode(' ', $texts);
+        preg_match_all('/\{\{(.*?)\}\}/', $content, $matches);
+
+        return array_unique($matches[1]);
+    }
+
+    protected function extractTextFromElement($element)
+    {
+        $texts = [];
+
+        if ($element instanceof Text) {
+            $texts[] = $element->getText();
+        }
+
+        if ($element instanceof TextRun) {
+            foreach ($element->getElements() as $child) {
+                $texts = array_merge($texts, $this->extractTextFromElement($child));
+            }
+        }
+
+        if ($element instanceof Table) {
+            foreach ($element->getRows() as $row) {
+                if ($row instanceof Row) {
+                    foreach ($row->getCells() as $cell) {
+                        if ($cell instanceof Cell) {
+                            foreach ($cell->getElements() as $cellElement) {
+                                $texts = array_merge($texts, $this->extractTextFromElement($cellElement));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return $texts;
+    }
+
+    public function edit(TemplateSurat $template)
+    {
+        return view('surats.edit', compact('template'));
+    }
+
+    public function update(Request $request, TemplateSurat $template)
+    {
+        $request->validate([
+            'nama_surat' => 'required|string',
+            'user_type' => 'required|in:mahasiswa,dosen',
+        ]);
+
+        $template->update([
+            'nama_surat' => $request->nama_surat,
+            'user_type' => $request->user_type,
+        ]);
+
+        return redirect()->route('surats.index')->with('success', 'Template diperbarui.');
+    }
+
+    public function destroy(TemplateSurat $template)
+    {
+        $template->delete();
+
+        return back()->with('success', 'Template berhasil dihapus.');
+    }
 }

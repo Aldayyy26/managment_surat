@@ -24,7 +24,8 @@ class RolePermissionSeeder extends Seeder
             'manage_apply_surat',
             'manage approval surat',
             'manage stempel',
-            'manage report'
+            'manage report',
+            'manage kop'
         ];
 
         // Create or find permissions
@@ -43,7 +44,7 @@ class RolePermissionSeeder extends Seeder
         $dosenRole->syncPermissions($dosenPermissions);
 
         $adminprodiRole = Role::firstOrCreate(['name' => 'adminprodi']);
-        $adminprodiPermissions = ['manage surat' , 'manage_users', 'manage stempel', 'manage report'];
+        $adminprodiPermissions = ['manage surat' , 'manage_users', 'manage stempel', 'manage report', 'manage kop'];
         $adminprodiRole->syncPermissions($adminprodiPermissions);
 
         $kepalaprodiRole = Role::firstOrCreate(['name' => 'kepalaprodi']);
@@ -56,7 +57,8 @@ class RolePermissionSeeder extends Seeder
         'manage_users',
         'manage_apply_surat',
         'manage stempel',
-        'manage report'];
+        'manage report',
+        'manage kop'];
         $superAdminRole->syncPermissions($superAdminPermissions);
 
         $user = User::firstOrCreate([

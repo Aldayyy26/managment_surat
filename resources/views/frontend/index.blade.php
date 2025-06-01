@@ -254,7 +254,7 @@
 
   <footer id="footer" class="footer">
     <div class="container copyright text-center mt-4">
-      <p>&copy; <strong class="px-1 sitename">Aldi Bhanu Azhar</strong> All Rights Reserved</p>
+      <p>&copy; <strong class="px-1 sitename">Teknik Informatika </strong> All Rights Reserved</p>
     </div>
   </footer>
 

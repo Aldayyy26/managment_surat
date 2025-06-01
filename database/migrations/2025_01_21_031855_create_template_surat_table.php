@@ -9,15 +9,11 @@ return new class extends Migration {
     {
         Schema::create('template_surats', function (Blueprint $table) {
             $table->id();
-            $table->string('judul');
-            $table->string('lampiran');
-            $table->string('perihal')->nullable();
-            $table->string('kepada_yth')->nullable();
-            $table->string('pembuka')->nullable();
-            $table->string('teks_atas')->nullable();
-            $table->json('konten');
-            $table->string(' teks_bawah')->nullable();
-            $table->string('penutup')->nullable();
+            $table->string('nama_surat');
+            $table->string('file_path');
+            $table->json('placeholders')->nullable();
+            $table->json('required_placeholders')->nullable();
+            $table->enum('user_type', ['mahasiswa', 'dosen']);
             $table->timestamps();
         });
     }

@@ -10,21 +10,18 @@ class TemplateSurat extends Model
     use HasFactory;
 
     protected $table = 'template_surats';
-    
+
     protected $fillable = [
-        'judul',
-        'lampiran',
-        'perihal',
-        'kepada_yth',
-        'pembuka',
-        'teks_atas',
-        'konten',
-        'teks_bawah',
-        'penutup',
+        'nama_surat',
+        'file_path',
+        'placeholders',
+        'required_placeholders',
+        'user_type',
     ];
 
     protected $casts = [
-        'konten' => 'array', 
+        'placeholders' => 'array',
+        'required_placeholders' => 'array',
     ];
 
     public function pengajuanSurats()
