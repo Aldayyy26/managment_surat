@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Log;
+use PhpOffice\PhpWord\TemplateProcessor;
 use Spatie\Permission\Models\Role;
 
 
@@ -21,7 +22,7 @@ class PengajuanSuratController extends Controller
     public function index(Request $request)
     {
         $query = PengajuanSurat::with('template')
-                    ->where('user_id', Auth::id());
+            ->where('user_id', Auth::id());
 
         if ($request->filled('judul')) {
             $query->whereHas('template', function ($q) use ($request) {
@@ -95,6 +96,37 @@ class PengajuanSuratController extends Controller
 
     public function store(Request $request)
     {
+        // ambil template surat
+        $template = new TemplateProcessor(storage_path('app/public/surat_templates/2nTscnG644bteK06YQdL2G7AiV8BZmi0ID8pSAzi.docx'));
+        $template->setValue('${nomor_surat}', 'nomor_suratxxx');
+        $template->setValue('${judul_surat}', 'judul_suratxxx');
+        $template->setValue('${judul}', 'judulxxx');
+        $template->setValue('${kepada_yth}', 'kepada_ythxxx');
+        $template->setValue('${nama_mahasiswa}', 'nama_mahasiswaxxx');
+        $template->setValue('${nim_mahasiswa}', 'nim_mahasiswaxxx');
+        $template->setValue('${prodi_mahasiswa}', 'prodi_mahasiswaxxx');
+        $template->setValue('${tangalsekarang}', 'tangalsekarangxxx');
+        $template->setValue('${ttd}', 'ttdxxx');
+        $template->setValue('${stemple}', 'stempelxxx');
+        $template->setValue('${kaprodi}', 'kaprodixxx');
+        $template->setValue('${nipy_kaprodi}', 'nipykaprodixxx');
+
+        // Simpan hasil edit
+        $docPath = storage_path('app/public/output.docx');
+        $template->saveAs($docPath);
+
+        // nama pdf
+        $pdfPath = storage_path('app/public/output.pdf');
+
+        try {
+            // $command = "libreoffice --headless --convert-to pdf --outdir " . escapeshellarg(dirname($pdfPath)) . ' ' . escapeshellarg($docPath);
+            $command = "soffice --headless --convert-to pdf --outdir " . escapeshellarg(dirname($pdfPath)) . ' ' . escapeshellarg($docPath);
+            exec($command, $output, $resultCode);
+        } catch (\Throwable $th) {
+            return 'Gagal mengonversi dokumen ke PDF: ' . $th->getMessage();
+        }
+
+        return response()->download($pdfPath);
         $request->validate([
             'template_id' => 'required|exists:template_surats,id',
             'konten' => 'required|array',
@@ -121,8 +153,8 @@ class PengajuanSuratController extends Controller
             }
 
             $message = "Halo {$kaprodi->name}, ada pengajuan surat baru dari {$user->name}.\n" .
-                       "Jenis Surat: {$template->judul}\n" .
-                       "Silakan cek aplikasi untuk melakukan approval.";
+                "Jenis Surat: {$template->judul}\n" .
+                "Silakan cek aplikasi untuk melakukan approval.";
 
             $this->sendWablasNotification($phone, $message);
         }
@@ -143,7 +175,7 @@ class PengajuanSuratController extends Controller
         }
 
         $pdf = Pdf::loadView('pengajuan_surat.surat_pdf', compact('pengajuanSurat'))
-                ->setPaper('a4', 'portrait');
+            ->setPaper('a4', 'portrait');
 
         return $pdf->download('Surat_Pengajuan_' . $pengajuanSurat->id . '.pdf');
     }
