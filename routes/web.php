@@ -39,7 +39,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/pengajuan-surat/{pengajuanSurat}/ditolak', [ApproveController::class, 'reject']);
 
 
-    Route::get('/get-template-fields/{template}', [TemplateSuratController::class, 'getTemplateFields']);
+    // Pengajuan Surat (CRUD + download)
+    Route::resource('pengajuan-surat', PengajuanSuratController::class);
     Route::get('/pengajuan-surat/{pengajuanSurat}/download', [PengajuanSuratController::class, 'download'])->name('pengajuan-surat.download');
 
     // Profile
