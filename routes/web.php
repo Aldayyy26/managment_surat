@@ -37,7 +37,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/pengajuan_surat/get-placeholders/{id}', [PengajuanSuratController::class, 'getPlaceholders'])->name('pengajuan_surat.get_placeholders');
     Route::resource('pengajuan_surat', PengajuanSuratController::class)->except(['edit']);
     Route::get('/pengajuan_surat/{id}/edit', [PengajuanSuratController::class, 'edit'])->name('pengajuan_surat.edit');
-    Route::get('/pengajuan_surat/{pengajuanSurat}/download', [PengajuanSuratController::class, 'download'])->name('pengajuan_surat.download');
+    Route::get('/pengajuan-surat/{id}/download', [PengajuanSuratController::class, 'download'])->name('pengajuan_surat.download');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

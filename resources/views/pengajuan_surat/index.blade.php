@@ -54,20 +54,20 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($pengajuanSurats as $index => $surat)
+                        @foreach($pengajuanSurats as $index => $pengajuan)
                             <tr class="hover:bg-gray-50">
                                 <td class="border border-gray-300 px-4 py-2">{{ $index + 1 }}</td>
-                                <td class="border border-gray-300 px-4 py-2">{{ $surat->template->nama_surat }}</td>
-                                <td class="border border-gray-300 px-4 py-2">{{ ucfirst($surat->status) }}</td>
-                                <td class="border border-gray-300 px-4 py-2">{{ $surat->created_at->format('d-m-Y') }}</td>
+                                <td class="border border-gray-300 px-4 py-2">{{ $pengajuan->template->nama_surat }}</td>
+                                <td class="border border-gray-300 px-4 py-2">{{ ucfirst($pengajuan->status) }}</td>
+                                <td class="border border-gray-300 px-4 py-2">{{ $pengajuan->created_at->format('d-m-Y') }}</td>
                                 <td class="border border-gray-300 px-4 py-2 flex space-x-2">
-                                    @if($surat->status == 'proses')
-                                        <a href="{{ route('pengajuan_surat.edit', $surat->id) }}" class="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600">
+                                    @if($pengajuan->status == 'proses')
+                                        <a href="{{ route('pengajuan_surat.edit', $pengajuan->id) }}" class="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600">
                                             Edit
                                         </a>
                                     @endif
-                                    @if($surat->status == 'diterima')
-                                        <a href="{{ route('pengajuan_surat.download', $surat->id) }}" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">
+                                    @if($pengajuan->status == 'diterima')
+                                        <a href="{{ route('pengajuan_surat.download', $pengajuan->id) }}" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">
                                             Download
                                         </a>
                                     @endif

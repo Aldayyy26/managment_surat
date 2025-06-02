@@ -11,7 +11,9 @@ use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Log;
 use Spatie\Permission\Models\Role;
-
+use PhpOffice\PhpWord\TemplateProcessor;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Response;
 
 
 class PengajuanSuratController extends Controller
@@ -162,19 +164,60 @@ class PengajuanSuratController extends Controller
         return redirect()->route('pengajuan_surat.index')->with('success', 'Pengajuan surat berhasil diajukan dan notifikasi terkirim.');
     }
 
-
-    public function download(PengajuanSurat $pengajuanSurat)
+    public function download($id)
     {
-        if ($pengajuanSurat->status != 'diterima') {
-            return redirect()->route('pengajuan_surat.index')
-                ->with('error', 'Hanya surat yang telah disetujui yang dapat diunduh.');
+        $pengajuan = PengajuanSurat::with('template')->findOrFail($id);
+
+        $template = $pengajuan->template;
+
+        $filePath = storage_path('app/public/' . $template->file_path);
+
+        if (!file_exists($filePath)) {
+            return back()->with('error', 'File template tidak ditemukan.');
         }
 
-        $pdf = Pdf::loadView('pengajuan_surat.surat_pdf', compact('pengajuanSurat'))
-                ->setPaper('a4', 'portrait');
+        $templateProcessor = new TemplateProcessor($filePath);
 
-        return $pdf->download('Surat_Pengajuan_' . $pengajuanSurat->id . '.pdf');
+        // Decode konten pengajuan yang berisi data pengganti placeholder
+        $konten = json_decode($pengajuan->konten, true);
+
+        // Decode placeholder yang wajib dari template
+        $placeholders = json_decode($template->required_placeholders, true);
+
+        if (is_array($placeholders)) {
+            foreach ($placeholders as $key => $placeholderConfig) {
+                // Gunakan key untuk placeholder, dan cari nilainya di konten
+                // Kalau ada spasi di key, coba trim dulu, dan hilangkan spasi jika perlu
+                $cleanKey = trim($key);
+
+                // Ambil nilai konten, kalau tidak ada isi '-' (atau bisa kosong)
+                $value = $konten[$cleanKey] ?? '-';
+
+                // Pastikan $value string agar setValue tidak error
+                if (!is_string($value) && !is_numeric($value)) {
+                    $value = json_encode($value); // fallback jika array/object
+                }
+
+                // Set value ke placeholder di template Word
+                $templateProcessor->setValue($cleanKey, $value);
+            }
+        }
+
+        $filename = Str::slug($template->nama_surat) . '-' . time() . '.docx';
+        $outputDir = storage_path('app/public/generated');
+
+        if (!file_exists($outputDir)) {
+            mkdir($outputDir, 0755, true);
+        }
+
+        $outputPath = $outputDir . '/' . $filename;
+
+        $templateProcessor->saveAs($outputPath);
+
+        return response()->download($outputPath)->deleteFileAfterSend(true);
     }
+
+
 
     public function edit($id)
     {
