@@ -12,6 +12,8 @@ use PhpOffice\PhpWord\Element\Row;
 use PhpOffice\PhpWord\Element\Cell;
 use Spatie\Permission\Models\Role;
 use Illuminate\Validation\Rule;
+use PhpOffice\PhpWord\TemplateProcessor;
+use Illuminate\Support\Facades\Storage;
 
 class TemplateSuratController extends Controller
 {
@@ -155,24 +157,67 @@ class TemplateSuratController extends Controller
         return $texts;
     }
 
-    public function edit(TemplateSurat $template)
+    public function edit($id)
     {
-        return view('surats.edit', compact('template'));
+        $template = TemplateSurat::findOrFail($id);
+
+        // Ambil placeholders & required_placeholders
+        $placeholders = is_array($template->placeholders)
+            ? $template->placeholders
+            : json_decode($template->placeholders, true) ?? [];
+
+        $requiredPlaceholders = is_array($template->required_placeholders)
+            ? $template->required_placeholders
+            : json_decode($template->required_placeholders, true) ?? [];
+
+        // Trim semua nilai dalam array placeholders
+        $placeholders = array_map('trim', $placeholders);
+
+        // Trim key dari requiredPlaceholders
+        $requiredPlaceholdersTrimmed = [];
+        foreach ($requiredPlaceholders as $key => $value) {
+            $requiredPlaceholdersTrimmed[trim($key)] = $value;
+        }
+
+        return view('surats.edit', [
+            'template' => $template,
+            'placeholders' => $placeholders,
+            'existingPlaceholders' => $requiredPlaceholdersTrimmed,
+        ]);
     }
 
-    public function update(Request $request, TemplateSurat $template)
+    public function update(Request $request, $id)
     {
+        $template = TemplateSurat::findOrFail($id);
+
         $request->validate([
-            'nama_surat' => 'required|string',
+            'nama_surat' => 'required|string|max:255',
             'user_type' => 'required|in:mahasiswa,dosen',
         ]);
 
-        $template->update([
-            'nama_surat' => $request->nama_surat,
-            'user_type' => $request->user_type,
-        ]);
+        $inputPlaceholders = $request->input('required_placeholders', []);
 
-        return redirect()->route('surats.index')->with('success', 'Template diperbarui.');
+        $cleanedPlaceholders = [];
+        foreach ($inputPlaceholders as $key => $config) {
+            $keyClean = trim($key);
+            $cleanedPlaceholders[$keyClean] = [
+                'required' => isset($config['required']) && $config['required'] == 1,
+                'label' => trim($config['label'] ?? ''),
+                'type' => $config['type'] ?? 'text',
+                'options' => isset($config['options']) 
+                    ? array_map('trim', explode(',', $config['options'])) 
+                    : [],
+            ];
+        }
+
+        $template->nama_surat = $request->nama_surat;
+        $template->user_type = $request->user_type;
+        $template->required_placeholders = json_encode($cleanedPlaceholders);
+
+        $template->save();
+
+        return redirect()->route('surats.edit', $template->id)
+            ->with('success', 'Template berhasil diperbarui.');
     }
 
     public function destroy(TemplateSurat $template)
