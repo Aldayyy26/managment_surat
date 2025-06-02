@@ -28,12 +28,12 @@
                             </div>
 
                             <div>
-                                <label for="judul" class="block text-gray-700 font-semibold mb-1">Judul Surat:</label>
+                                <label for="nama_surat" class="block text-gray-700 font-semibold mb-1">Judul Surat:</label>
                                 <input
                                     type="text"
-                                    name="judul"
-                                    id="judul"
-                                    value="{{ request('judul') }}"
+                                    name="nama_surat"
+                                    id="nama_surat"
+                                    value="{{ request('nama_surat') }}"
                                     placeholder="Judul surat"
                                     class="border border-gray-300 rounded-md px-4 py-2 w-full sm:w-52"
                                 />
@@ -96,7 +96,7 @@
                             @forelse($pengajuanSurats as $index => $surat)
                             <tr class="hover:bg-gray-50">
                                 <td class="border border-gray-300 px-4 py-2">{{ $index + 1 }}</td>
-                                <td class="border border-gray-300 px-4 py-2">{{ $surat->template->judul }}</td>
+                                <td class="border border-gray-300 px-4 py-2">{{ $surat->template->nama_surat }}</td>
                                 <td class="border border-gray-300 px-4 py-2">{{ ucfirst($surat->status) }}</td>
                                 <td class="border border-gray-300 px-4 py-2">{{ $surat->created_at->format('d-m-Y') }}</td>
                                 <td class="border border-gray-300 px-4 py-2">{{ $surat->user->name ?? '-' }}</td>

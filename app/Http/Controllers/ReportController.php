@@ -17,9 +17,9 @@ class ReportController extends Controller
             });
         }
 
-        if ($request->judul) {
+        if ($request->nama_surat) {
             $query->whereHas('template', function ($q) use ($request) {
-                $q->where('judul', 'like', '%' . $request->judul . '%');
+                $q->where('nama_surat', 'like', '%' . $request->nama_surat . '%');
             });
         }
 

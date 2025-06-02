@@ -27,7 +27,7 @@
                                 <tr class="hover:bg-gray-50">
                                     <td class="border border-gray-300 px-4 py-2">{{ $index + 1 }}</td>
                                     <!-- Menampilkan nama surat dari TemplateSurat -->
-                                    <td class="border border-gray-300 px-4 py-2">{{ $surat->template->judul }}</td>
+                                    <td class="border border-gray-300 px-4 py-2">{{ $surat->template->nama_surat }}</td>
                                     <td class="border border-gray-300 px-4 py-2">{{ $surat->created_at->format('Y-m-d') }}</td>
                                     <!-- Menampilkan nama pengguna yang mengajukan -->
                                     <td class="border border-gray-300 px-4 py-2">{{ $surat->user->name }}</td>

@@ -38,10 +38,10 @@ class ApproveController extends Controller
         curl_close($ch);
 
         if ($err) {
-            \Log::error("WhatsApp Gateway API Error: " . $err);
+            Log::error("WhatsApp Gateway API Error: " . $err);
             return false;
         } else {
-            \Log::info("WhatsApp Gateway API Response: " . $response);
+            Log::info("WhatsApp Gateway API Response: " . $response);
         }
 
         return $response;
