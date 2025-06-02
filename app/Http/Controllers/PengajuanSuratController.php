@@ -106,10 +106,10 @@ class PengajuanSuratController extends Controller
         curl_close($ch);
 
         if ($err) {
-            \Log::error("WhatsApp Gateway API Error: " . $err);
+            Log::error("WhatsApp Gateway API Error: " . $err);
             return false;
         } else {
-            \Log::info("WhatsApp Gateway API Response: " . $response);
+            Log::info("WhatsApp Gateway API Response: " . $response);
         }
 
         return $response;
@@ -148,7 +148,7 @@ class PengajuanSuratController extends Controller
             $phone = $kaprodi->whatsapp_number;
 
             if (!$phone) {
-                \Log::warning("User {$kaprodi->id} role kepalaprodi tidak punya nomor whatsapp");
+                Log::warning("User {$kaprodi->id} role kepalaprodi tidak punya nomor whatsapp");
                 continue;
             }
 
@@ -162,12 +162,6 @@ class PengajuanSuratController extends Controller
         return redirect()->route('pengajuan_surat.index')->with('success', 'Pengajuan surat berhasil diajukan dan notifikasi terkirim.');
     }
 
-    
-
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
 
     public function download(PengajuanSurat $pengajuanSurat)
     {
@@ -182,32 +176,50 @@ class PengajuanSuratController extends Controller
         return $pdf->download('Surat_Pengajuan_' . $pengajuanSurat->id . '.pdf');
     }
 
-    public function edit(PengajuanSurat $pengajuanSurat)
+    public function edit($id)
     {
-        if ($pengajuanSurat->user_id !== Auth::id() || $pengajuanSurat->status !== 'proses') {
-            return redirect()->route('pengajuan_surat.index')->with('error', 'Hanya surat dalam status pending yang dapat diedit.');
-        }
+        $pengajuan = PengajuanSurat::where('id', $id)
+                        ->where('user_id', Auth::id())
+                        ->firstOrFail();
 
         $templates = TemplateSurat::all();
-        return view('pengajuan_surat.edit', compact('pengajuanSurat', 'templates'));
+
+        $konten = json_decode($pengajuan->konten, true) ?? [];
+        $template = $pengajuan->template;
+
+        return view('pengajuan_surat.edit', compact('pengajuan', 'templates', 'konten', 'template'));
     }
 
-    public function update(Request $request, PengajuanSurat $pengajuanSurat)
+
+    public function update(Request $request, $id)
     {
-        if ($pengajuanSurat->user_id !== Auth::id() || $pengajuanSurat->status !== 'proses') {
-            return redirect()->route('pengajuan_surat.index')->with('error', 'Hanya surat dalam status pending yang dapat diperbarui.');
-        }
+        $pengajuan = PengajuanSurat::where('id', $id)
+                        ->where('user_id', Auth::id())
+                        ->firstOrFail();
 
         $request->validate([
             'template_id' => 'required|exists:template_surats,id',
             'konten' => 'required|array',
         ]);
 
-        $pengajuanSurat->update([
+        $template = TemplateSurat::findOrFail($request->template_id);
+        $placeholders = json_decode($template->required_placeholders, true);
+
+        foreach ($placeholders as $key => $config) {
+            if (!isset($request->konten[$key]) || empty($request->konten[$key])) {
+                return back()->withInput()->withErrors([
+                    "konten.{$key}" => "Field '{$config['label']}' wajib diisi.",
+                ]);
+            }
+        }
+
+        $pengajuan->update([
             'template_id' => $request->template_id,
             'konten' => json_encode($request->konten),
+            'status' => 'proses', // bisa disesuaikan logikanya
         ]);
 
         return redirect()->route('pengajuan_surat.index')->with('success', 'Pengajuan surat berhasil diperbarui.');
     }
+
 }
