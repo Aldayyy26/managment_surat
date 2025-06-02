@@ -178,27 +178,18 @@ class PengajuanSuratController extends Controller
 
         $templateProcessor = new TemplateProcessor($filePath);
 
-        // Decode konten pengajuan yang berisi data pengganti placeholder
         $konten = json_decode($pengajuan->konten, true);
 
-        // Decode placeholder yang wajib dari template
         $placeholders = json_decode($template->required_placeholders, true);
 
         if (is_array($placeholders)) {
             foreach ($placeholders as $key => $placeholderConfig) {
-                // Gunakan key untuk placeholder, dan cari nilainya di konten
-                // Kalau ada spasi di key, coba trim dulu, dan hilangkan spasi jika perlu
                 $cleanKey = trim($key);
-
-                // Ambil nilai konten, kalau tidak ada isi '-' (atau bisa kosong)
                 $value = $konten[$cleanKey] ?? '-';
-
-                // Pastikan $value string agar setValue tidak error
                 if (!is_string($value) && !is_numeric($value)) {
-                    $value = json_encode($value); // fallback jika array/object
+                    $value = json_encode($value);
                 }
 
-                // Set value ke placeholder di template Word
                 $templateProcessor->setValue($cleanKey, $value);
             }
         }
