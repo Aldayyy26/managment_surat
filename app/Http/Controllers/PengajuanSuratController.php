@@ -14,7 +14,7 @@ use Spatie\Permission\Models\Role;
 use PhpOffice\PhpWord\TemplateProcessor;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Response;
-
+use Mpdf\Mpdf;
 
 class PengajuanSuratController extends Controller
 {
@@ -172,9 +172,9 @@ class PengajuanSuratController extends Controller
         return [
             'nama_kaprodi' => $kaprodi->name ?? '-',
             'nipy_kaprodi' => $kaprodi->nipy ?? '-',
-            'ttd_kaprodi_path' => storage_path('app/public/signatures/ttd_kaprodi.png'),
-            'stempel_kaprodi_path' => storage_path('app/public/stempel/stempel_kaprodi.png'),
-            'tanggal' => now()->format('d F Y'),
+            'ttd_kaprodi' => asset('storage/signatures/signature_kaprodi.png'),
+            'stempel' => asset('storage/stempels/stempel_kaprodi.png'),
+            'tanggalsekarang' => now()->format('d F Y'),
         ];
     }
 
@@ -199,13 +199,28 @@ class PengajuanSuratController extends Controller
         // Gabungkan konten user dan data sistem
         $allData = array_merge($konten, $systemData);
 
-        // Replace semua placeholder
+        // Replace semua placeholder text dulu
         foreach ($allData as $key => $value) {
+            // skip gambar di sini
+            if (in_array($key, ['ttd_kaprodi', 'stempel'])) continue;
+
             if (!is_string($value) && !is_numeric($value)) {
                 $value = json_encode($value);
             }
             $templateProcessor->setValue($key, $value);
         }
+
+        // Set gambar dengan setImageValue
+        $templateProcessor->setImageValue('ttd_kaprodi', [
+            'path' => storage_path('app/public/signatures/signature_kaprodi.png'),
+            'width' => 150,
+            'height' => 80,
+        ]);
+        $templateProcessor->setImageValue('stempel', [
+            'path' => storage_path('app/public/stempels/stempel_kaprodi.png'),
+            'width' => 150,
+            'height' => 80,
+        ]);
 
         // Save dan download
         $filename = Str::slug($template->nama_surat) . '-' . time() . '.docx';
