@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Stempel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 
 class StempelController extends Controller
 {
@@ -27,15 +26,18 @@ class StempelController extends Controller
             'gambar' => 'required|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
+        // Hapus file gambar lama
+        Storage::disk('public')->delete('stempels/stempel_kaprodi.png');
+
         $file = $request->file('gambar');
-
-        $filename = Str::random(20) . '.png';
-
+        $filename = 'stempel_kaprodi.png';
         $tmpPath = $file->getPathname();
-
         $storagePath = storage_path('app/public/stempels/' . $filename);
 
         $this->removeWhiteBackgroundAndSaveAsPng($tmpPath, $storagePath);
+
+        // Opsional: hanya simpan satu data stempel di database
+        Stempel::truncate();
 
         Stempel::create([
             'nama' => $request->nama,
@@ -60,10 +62,11 @@ class StempelController extends Controller
         $stempel->nama = $request->nama;
 
         if ($request->hasFile('gambar')) {
-            Storage::disk('public')->delete($stempel->gambar);
+            // Hapus file lama
+            Storage::disk('public')->delete('stempels/stempel_kaprodi.png');
 
             $file = $request->file('gambar');
-            $filename = Str::random(20) . '.png';
+            $filename = 'stempel_kaprodi.png';
             $tmpPath = $file->getPathname();
             $storagePath = storage_path('app/public/stempels/' . $filename);
 
@@ -79,7 +82,7 @@ class StempelController extends Controller
 
     public function destroy(Stempel $stempel)
     {
-        Storage::disk('public')->delete($stempel->gambar);
+        Storage::disk('public')->delete('stempels/stempel_kaprodi.png');
         $stempel->delete();
 
         return redirect()->route('stempels.index')->with('success', 'Stempel berhasil dihapus.');
@@ -127,5 +130,11 @@ class StempelController extends Controller
 
         imagedestroy($img);
         imagedestroy($newImg);
+    }
+
+    // Static path helper jika dibutuhkan
+    public static function getStempelPath()
+    {
+        return 'stempels/stempel_kaprodi.png';
     }
 }

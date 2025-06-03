@@ -10,6 +10,7 @@ use App\Http\Controllers\PengajuanSuratController;
 use App\Http\Controllers\StempelController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\KopSuratController;
+use App\Http\Controllers\SignatureController;
 
 
 Route::get('/', [FrontController::class, 'index'])->name('frontend.index'); 
@@ -46,6 +47,11 @@ Route::middleware(['auth'])->group(function () {
     // User Management
     Route::resource('users', UserController::class);
 });
+
+Route::get('/signature/create', [SignatureController::class, 'create'])->name('signature.create');
+Route::post('/signature', [SignatureController::class, 'store'])->name('signature.store');
+Route::get('/signature', [SignatureController::class, 'index'])->name('signature.index');
+Route::delete('/signature', [SignatureController::class, 'destroy'])->name('signature.destroy');
 
 Route::get('/surats', [TemplateSuratController::class, 'index'])->name('surats.index');
 Route::get('/surats/create', [TemplateSuratController::class, 'create'])->name('surats.create');

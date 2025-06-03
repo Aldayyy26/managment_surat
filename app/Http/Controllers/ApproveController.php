@@ -6,6 +6,8 @@ use App\Models\PengajuanSurat;
 use App\Models\TemplateSurat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use App\Http\Controllers\SignatureController;
+use Illuminate\Support\Facades\Storage;
 
 class ApproveController extends Controller
 {
@@ -55,30 +57,22 @@ class ApproveController extends Controller
 
     public function approve(Request $request, PengajuanSurat $pengajuanSurat)
     {
-        $request->validate([
-            'signature' => 'required|string',
-        ]);
-
         try {
-            $signatureData = $request->signature;
-            list($type, $data) = explode(';', $signatureData);
-            list(, $data) = explode(',', $data);
+            $signaturePath = SignatureController::getSignaturePath();
 
-            $imageData = base64_decode($data);
-
-            $filename = 'signature_' . time() . '.png';
-            $path = storage_path('app/public/signatures/' . $filename);
-            file_put_contents($path, $imageData);
+            if (!Storage::disk('public')->exists($signaturePath)) {
+                return response()->json(['message' => 'Tanda tangan kaprodi belum disimpan. Silakan buat terlebih dahulu.'], 400);
+            }
 
             $pengajuanSurat->update([
                 'status' => 'diterima',
-                'signature' => 'signatures/' . $filename,
+                'signature' => $signaturePath,
             ]);
 
-            // Kirim notifikasi WA ke user pengaju
+            // Kirim WA
             $user = $pengajuanSurat->user;
             if ($user && $user->whatsapp_number) {
-                $message = "Halo {$user->name}, pengajuan surat Anda dengan judul surat {$pengajuanSurat->judul} telah *disetujui* silahkan cek ke aplikasi untuk mengunduh.";
+                $message = "Halo {$user->name}, pengajuan surat Anda dengan judul surat {$pengajuanSurat->judul} telah *disetujui*. Silakan cek aplikasi untuk mengunduh.";
                 $this->sendWablasNotification($user->whatsapp_number, $message);
             }
 
