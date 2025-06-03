@@ -52,12 +52,13 @@ class PengajuanSuratController extends Controller
 
         $placeholders = json_decode($raw, true);
 
-        if (!is_array($placeholders)) {
+        if (!is_array($placeholders) || $placeholders === null) {
             return response()->json([], 400);
         }
 
         return response()->json($placeholders);
     }
+
 
 
     public function approvalIndex()
@@ -164,12 +165,23 @@ class PengajuanSuratController extends Controller
         return redirect()->route('pengajuan_surat.index')->with('success', 'Pengajuan surat berhasil diajukan dan notifikasi terkirim.');
     }
 
+    private function getKaprodiData()
+    {
+        $kaprodi = User::role('kepalaprodi')->first();
+
+        return [
+            'nama_kaprodi' => $kaprodi->name ?? '-',
+            'nipy_kaprodi' => $kaprodi->nipy ?? '-',
+            'ttd_kaprodi_path' => storage_path('app/public/signatures/ttd_kaprodi.png'),
+            'stempel_kaprodi_path' => storage_path('app/public/stempel/stempel_kaprodi.png'),
+            'tanggal' => now()->format('d F Y'),
+        ];
+    }
+
     public function download($id)
     {
         $pengajuan = PengajuanSurat::with('template')->findOrFail($id);
-
         $template = $pengajuan->template;
-
         $filePath = storage_path('app/public/' . $template->file_path);
 
         if (!file_exists($filePath)) {
@@ -178,22 +190,24 @@ class PengajuanSuratController extends Controller
 
         $templateProcessor = new TemplateProcessor($filePath);
 
-        $konten = json_decode($pengajuan->konten, true);
+        $konten = json_decode($pengajuan->konten, true) ?? [];
+        $placeholders = json_decode($template->required_placeholders, true) ?? [];
 
-        $placeholders = json_decode($template->required_placeholders, true);
+        // Data sistem (kaprodi, tanggal, dll)
+        $systemData = $this->getKaprodiData();
 
-        if (is_array($placeholders)) {
-            foreach ($placeholders as $key => $placeholderConfig) {
-                $cleanKey = trim($key);
-                $value = $konten[$cleanKey] ?? '-';
-                if (!is_string($value) && !is_numeric($value)) {
-                    $value = json_encode($value);
-                }
+        // Gabungkan konten user dan data sistem
+        $allData = array_merge($konten, $systemData);
 
-                $templateProcessor->setValue($cleanKey, $value);
+        // Replace semua placeholder
+        foreach ($allData as $key => $value) {
+            if (!is_string($value) && !is_numeric($value)) {
+                $value = json_encode($value);
             }
+            $templateProcessor->setValue($key, $value);
         }
 
+        // Save dan download
         $filename = Str::slug($template->nama_surat) . '-' . time() . '.docx';
         $outputDir = storage_path('app/public/generated');
 
@@ -202,13 +216,10 @@ class PengajuanSuratController extends Controller
         }
 
         $outputPath = $outputDir . '/' . $filename;
-
         $templateProcessor->saveAs($outputPath);
 
         return response()->download($outputPath)->deleteFileAfterSend(true);
     }
-
-
 
     public function edit($id)
     {

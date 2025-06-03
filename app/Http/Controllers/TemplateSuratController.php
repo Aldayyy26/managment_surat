@@ -75,40 +75,60 @@ class TemplateSuratController extends Controller
             ->with('success', 'File berhasil diupload, silakan pilih placeholder yang wajib diisi.');
     }
 
+    
+public function selectPlaceholders(Request $request, $id)
+    {
+        $template = TemplateSurat::findOrFail($id);
+
+        $inputPlaceholders = $request->input('required_placeholders', []);
+
+        $cleanedPlaceholders = [];
+        foreach ($inputPlaceholders as $key => $config) {
+            if (!isset($config['can_input']) || $config['can_input'] != 1) {
+                continue; // Skip jika tidak dicentang "bisa diajukan user"
+            }
+
+            $keyClean = trim($key);
+            $cleanedPlaceholders[$keyClean] = [
+                'required' => true,
+                'nullable' => isset($config['nullable']) && $config['nullable'] == 1,
+                'label' => trim($config['label'] ?? ''),
+                'type' => $config['type'] ?? 'text',
+                'options' => isset($config['options']) 
+                    ? array_map('trim', explode(',', $config['options'])) 
+                    : [],
+            ];
+        }
+
+        $template->required_placeholders = json_encode($cleanedPlaceholders);
+        $template->save();
+
+        return redirect()->route('surats.index')
+            ->with('success', 'Placeholder berhasil disimpan.');
+    }
+
     public function selectPlaceholdersForm($id)
     {
         $template = TemplateSurat::findOrFail($id);
 
-        return view('surats.select_placeholders', ['template' => $template, 'placeholders' => $template->placeholders]);
-    }
+        // Decode placeholders dari file Word
+        $placeholders = is_array($template->placeholders)
+            ? $template->placeholders
+            : json_decode($template->placeholders, true) ?? [];
 
-    public function selectPlaceholders(Request $request, $id)
-    {
-        $template = TemplateSurat::findOrFail($id);
+        // Placeholder yang sudah dipilih sebelumnya
+        $requiredPlaceholders = is_array($template->required_placeholders)
+            ? $template->required_placeholders
+            : json_decode($template->required_placeholders, true) ?? [];
 
-        $input = $request->input('required_placeholders', []);
-
-        $required_placeholders = [];
-
-        foreach ($input as $key => $data) {
-            if (!empty($data['required'])) {
-                $required_placeholders[$key] = [
-                    'label' => $data['label'] ?? $key,
-                    'type' => $data['type'] ?? 'text',
-                    'options' => isset($data['options']) ? array_map('trim', explode(',', $data['options'])) : [],
-                ];
-            }
-        }
-
-        $template->update([
-            'required_placeholders' => json_encode($required_placeholders),
+        return view('surats.select_placeholders', [
+            'template' => $template,
+            'placeholders' => $placeholders,
+            'existingPlaceholders' => $requiredPlaceholders,
         ]);
-
-        return redirect()->route('surats.create')->with('success', 'Template surat berhasil disimpan dengan placeholder wajib.');
     }
 
 
-    // --- Fungsi pembantu untuk scan placeholder sama seperti yang kamu punya ---
     protected function scanPlaceholders($filePath)
     {
         $phpWord = IOFactory::load($filePath);
@@ -121,10 +141,17 @@ class TemplateSuratController extends Controller
         }
 
         $content = implode(' ', $texts);
-        preg_match_all('/\{\{(.*?)\}\}/', $content, $matches);
+
+        // Bersihkan spasi di dalam placeholder supaya sesuai format ${...}
+        $content = preg_replace('/\$\s*\{\s*(.*?)\s*\}/', '${$1}', $content);
+
+        // Sekarang cari placeholder yang sudah rapi
+        preg_match_all('/\$\{(.*?)\}/', $content, $matches);
 
         return array_unique($matches[1]);
     }
+
+
 
     protected function extractTextFromElement($element)
     {
@@ -197,28 +224,43 @@ class TemplateSuratController extends Controller
 
         $inputPlaceholders = $request->input('required_placeholders', []);
 
-        $cleanedPlaceholders = [];
+        $requiredPlaceholders = [];
+        $allPlaceholders = [];
+
         foreach ($inputPlaceholders as $key => $config) {
             $keyClean = trim($key);
-            $cleanedPlaceholders[$keyClean] = [
-                'required' => isset($config['required']) && $config['required'] == 1,
+
+            $placeholderData = [
                 'label' => trim($config['label'] ?? ''),
                 'type' => $config['type'] ?? 'text',
                 'options' => isset($config['options']) 
                     ? array_map('trim', explode(',', $config['options'])) 
                     : [],
             ];
+
+            // Masukkan semua placeholder ke daftar umum
+            $allPlaceholders[] = $keyClean;
+
+            // Hanya masukkan ke required_placeholders jika bisa diajukan user
+            if (isset($config['can_input']) && $config['can_input'] == 1) {
+                $requiredPlaceholders[$keyClean] = array_merge($placeholderData, [
+                    'required' => true,
+                    'nullable' => isset($config['nullable']) && $config['nullable'] == 1,
+                ]);
+            }
         }
 
         $template->nama_surat = $request->nama_surat;
         $template->user_type = $request->user_type;
-        $template->required_placeholders = json_encode($cleanedPlaceholders);
+        $template->required_placeholders = json_encode($requiredPlaceholders);
+        $template->placeholders = json_encode($allPlaceholders); // hanya simpan array key-nya
 
         $template->save();
 
         return redirect()->route('surats.edit', $template->id)
             ->with('success', 'Template berhasil diperbarui.');
     }
+
 
     public function destroy(TemplateSurat $template)
     {
