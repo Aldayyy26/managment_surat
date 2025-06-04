@@ -47,9 +47,10 @@
                                     class="border border-gray-300 rounded-md px-4 py-2 w-full sm:w-40"
                                 >
                                     <option value="">Semua</option>
-                                    <option value="menunggu" {{ request('status') == 'menunggu' ? 'selected' : '' }}>Menunggu</option>
-                                    <option value="disetujui" {{ request('status') == 'disetujui' ? 'selected' : '' }}>Disetujui</option>
+                                    <option value="proses" {{ request('status') == 'proses' ? 'selected' : '' }}>Menunggu</option>
+                                    <option value="diterima" {{ request('status') == 'diterima' ? 'selected' : '' }}>Diterima</option>
                                     <option value="ditolak" {{ request('status') == 'ditolak' ? 'selected' : '' }}>Ditolak</option>
+
                                 </select>
                             </div>
 

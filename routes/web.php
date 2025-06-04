@@ -15,11 +15,6 @@ use App\Http\Controllers\SignatureController;
 
 Route::get('/', [FrontController::class, 'index'])->name('frontend.index'); 
 
-
-Route::get('/kop', [KopSuratController::class, 'index'])->name('kop.index');
-Route::get('/kop/edit', [KopSuratController::class, 'edit'])->name('kop.edit');
-Route::post('/kop/update', [KopSuratController::class, 'update'])->name('kop.update');
-
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', function () {
         return view('dashboard');

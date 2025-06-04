@@ -171,10 +171,10 @@ class PengajuanSuratController extends Controller
 
         return [
             'nama_kaprodi' => $kaprodi->name ?? '-',
-            'nipy_kaprodi' => $kaprodi->nipy ?? '-',
+            'nipy_kaprodi' => $kaprodi->nip ?? '-',
             'ttd_kaprodi' => asset('storage/signatures/signature_kaprodi.png'),
             'stempel' => asset('storage/stempels/stempel_kaprodi.png'),
-            'tanggalsekarang' => now()->format('d F Y'),
+            'tangalsekarang' => now()->format('d F Y'),
         ];
     }
 
@@ -193,15 +193,11 @@ class PengajuanSuratController extends Controller
         $konten = json_decode($pengajuan->konten, true) ?? [];
         $placeholders = json_decode($template->required_placeholders, true) ?? [];
 
-        // Data sistem (kaprodi, tanggal, dll)
         $systemData = $this->getKaprodiData();
 
-        // Gabungkan konten user dan data sistem
         $allData = array_merge($konten, $systemData);
 
-        // Replace semua placeholder text dulu
         foreach ($allData as $key => $value) {
-            // skip gambar di sini
             if (in_array($key, ['ttd_kaprodi', 'stempel'])) continue;
 
             if (!is_string($value) && !is_numeric($value)) {
@@ -210,7 +206,6 @@ class PengajuanSuratController extends Controller
             $templateProcessor->setValue($key, $value);
         }
 
-        // Set gambar dengan setImageValue
         $templateProcessor->setImageValue('ttd_kaprodi', [
             'path' => storage_path('app/public/signatures/signature_kaprodi.png'),
             'width' => 150,
@@ -222,7 +217,6 @@ class PengajuanSuratController extends Controller
             'height' => 80,
         ]);
 
-        // Save dan download
         $filename = Str::slug($template->nama_surat) . '-' . time() . '.docx';
         $outputDir = storage_path('app/public/generated');
 
