@@ -9,11 +9,12 @@ return new class extends Migration {
     {
         Schema::create('template_surats', function (Blueprint $table) {
             $table->id();
+            $table->string('no_jenis_surat');
             $table->string('nama_surat');
             $table->string('file_path');
             $table->json('placeholders')->nullable();
             $table->json('required_placeholders')->nullable();
-            $table->enum('user_type', ['mahasiswa', 'dosen']);
+            $table->enum('user_type', ['mahasiswa', 'dosen', 'adminprodi']);
             $table->timestamps();
         });
     }

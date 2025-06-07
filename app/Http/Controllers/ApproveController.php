@@ -72,7 +72,7 @@ class ApproveController extends Controller
             // Kirim WA
             $user = $pengajuanSurat->user;
             if ($user && $user->whatsapp_number) {
-                $message = "Halo {$user->name}, pengajuan surat Anda dengan judul surat {$pengajuanSurat->judul} telah *disetujui*. Silakan cek aplikasi untuk mengunduh.";
+                $message = "Halo {$user->name}, pengajuan surat Anda dengan judul surat {$pengajuanSurat->nama_surat} telah *disetujui*. Silakan cek aplikasi untuk mengunduh.";
                 $this->sendWablasNotification($user->whatsapp_number, $message);
             }
 
@@ -92,7 +92,7 @@ class ApproveController extends Controller
         // Kirim notifikasi WA ke user pengaju
         $user = $pengajuanSurat->user;
         if ($user && $user->whatsapp_number) {
-            $message = "Halo {$user->name},pengajuan surat Anda dengan judul surat{$pengajuanSurat->surat} telah *ditolak* oleh kaprodi. silahkan ajukan ulang dengan data yang benar.";
+            $message = "Halo {$user->name},pengajuan surat Anda dengan judul surat{$pengajuanSurat->nama_surat} telah *ditolak* oleh kaprodi. silahkan ajukan ulang dengan data yang benar.";
             $this->sendWablasNotification($user->whatsapp_number, $message);
         }
 

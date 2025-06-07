@@ -20,9 +20,9 @@ Route::middleware(['auth'])->group(function () {
         return view('dashboard');
     })->name('dashboard');
 });
-
-Route::get('/admin/report', [ReportController::class, 'history'])->name('admin.report');
-Route::middleware(['auth'])->group(function () {
+    Route::post('/users/import', [UserController::class, 'import'])->name('users.import');
+    Route::get('/admin/report', [ReportController::class, 'history'])->name('admin.report');
+    Route::middleware(['auth'])->group(function () {
 
     Route::resource('stempels', StempelController::class);
 
@@ -31,9 +31,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/pengajuan_surat/{pengajuanSurat}/ditolak', [ApproveController::class, 'reject']);
     
     Route::get('/pengajuan_surat/get-placeholders/{id}', [PengajuanSuratController::class, 'getPlaceholders'])->name('pengajuan_surat.get_placeholders');
-    Route::resource('pengajuan_surat', PengajuanSuratController::class)->except(['edit']);
-    Route::get('/pengajuan_surat/{id}/edit', [PengajuanSuratController::class, 'edit'])->name('pengajuan_surat.edit');
-    Route::get('/pengajuan-surat/{id}/download', [PengajuanSuratController::class, 'download'])->name('pengajuan_surat.download');
+    
+    Route::middleware(['auth'])->group(function () {
+        Route::resource('pengajuan_surat', PengajuanSuratController::class)->except(['edit']);
+        Route::get('/pengajuan_surat/{id}/edit', [PengajuanSuratController::class, 'edit'])->name('pengajuan_surat.edit');
+        Route::get('/pengajuan-surat/{id}/download', [PengajuanSuratController::class, 'download'])->name('pengajuan_surat.download');
+    });
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

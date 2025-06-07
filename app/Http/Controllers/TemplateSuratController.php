@@ -32,17 +32,18 @@ class TemplateSuratController extends Controller
 
     public function create()
     {
-        $userRoles = Role::whereIn('name', ['mahasiswa', 'dosen'])->pluck('name');
+        $userRoles = Role::whereIn('name', ['mahasiswa', 'dosen', 'adminprodi'])->pluck('name');
 
         return view('surats.create', compact('userRoles'));
     }
 
     public function upload(Request $request)
     {
-        $allowedRoles = Role::whereIn('name', ['mahasiswa', 'dosen'])->pluck('name')->toArray();
+        $allowedRoles = Role::whereIn('name', ['mahasiswa', 'dosen', 'adminprodi'])->pluck('name')->toArray();
 
         $request->validate([
             'nama_surat' => 'required|string',
+            'no_jenis_surat' => 'required|string',
             'user_type' => ['required', Rule::in($allowedRoles)],
             'file_surat' => 'required|file|mimes:docx',
         ]);
@@ -61,22 +62,21 @@ class TemplateSuratController extends Controller
             return back()->with('error', 'Gagal membaca file Word: ' . $e->getMessage());
         }
 
-        // Simpan dulu template dengan placeholders dan required_placeholders kosong
         $template = TemplateSurat::create([
+            'no_jenis_surat' => $request->no_jenis_surat,
             'nama_surat' => $request->nama_surat,
             'file_path' => $path,
-            'placeholders' => $placeholders,
+            'placeholders' => json_encode($placeholders),
             'required_placeholders' => json_encode([]),
             'user_type' => $request->user_type,
         ]);
 
-        // Redirect ke halaman pilih placeholder dengan id template
         return redirect()->route('surats.selectPlaceholdersForm', $template->id)
             ->with('success', 'File berhasil diupload, silakan pilih placeholder yang wajib diisi.');
     }
 
     
-public function selectPlaceholders(Request $request, $id)
+    public function selectPlaceholders(Request $request, $id)
     {
         $template = TemplateSurat::findOrFail($id);
 
@@ -219,8 +219,9 @@ public function selectPlaceholders(Request $request, $id)
 
         $request->validate([
             'nama_surat' => 'required|string|max:255',
-            'user_type' => 'required|in:mahasiswa,dosen',
+            'user_type' => ['required', Rule::in(['mahasiswa', 'dosen', 'adminprodi'])],
         ]);
+
 
         $inputPlaceholders = $request->input('required_placeholders', []);
 

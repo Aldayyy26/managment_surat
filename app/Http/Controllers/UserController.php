@@ -8,12 +8,24 @@ use Spatie\Permission\Models\Role;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use App\Imports\UsersImport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class UserController extends Controller
 {
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,csv',
+        ]);
+
+        Excel::import(new UsersImport, $request->file('file'));
+
+        return redirect()->route('users.index')->with('success', 'Users imported successfully!');
+    }
     public function index(Request $request)
     {
-        $query = User::with('roles');
+        $query = User::with('roles')->where('id', '!=', 1); // exclude user id 1
 
         // Search by name if provided
         if ($request->has('search_name') && $request->search_name != '') {
@@ -25,10 +37,22 @@ class UserController extends Controller
             $query->where('nim', 'like', '%' . $request->search_nim . '%');
         }
 
+        // Search by role if provided
+        if ($request->has('search_role') && $request->search_role != '') {
+            $searchRole = $request->search_role;
+            $query->whereHas('roles', function ($q) use ($searchRole) {
+                $q->where('name', 'like', '%' . $searchRole . '%');
+            });
+        }
+
         $users = $query->get();
 
-        return view('Users.index', compact('users'));
+        // Untuk dropdown role di filter nanti, ambil semua role
+        $roles = Role::all();
+
+        return view('Users.index', compact('users', 'roles'));
     }
+
 
     public function create()
     {

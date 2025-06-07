@@ -12,6 +12,7 @@ class TemplateSurat extends Model
     protected $table = 'template_surats';
 
     protected $fillable = [
+        'no_jenis_surat',
         'nama_surat',
         'file_path',
         'placeholders',

@@ -27,6 +27,11 @@
                 @csrf
 
                 <div class="mb-4">
+                    <label class="block font-medium">Nomor Jenis Surat</label>
+                    <input type="text" name="no_jenis_surat" class="w-full border rounded px-4 py-2" required>
+                </div>
+
+                <div class="mb-4">
                     <label class="block font-medium">Nama Surat</label>
                     <input type="text" name="nama_surat" class="w-full border rounded px-4 py-2" required>
                 </div>
@@ -34,13 +39,13 @@
                 <div class="mb-4">
                     <label class="block font-medium">Jenis Pengguna</label>
                     <select name="user_type" class="w-full border rounded px-4 py-2" required>
-                        <option value="">-- Pilih --</option>
+                        <option value="" disabled selected>Pilih jenis pengguna yg bisa mengajukan template</option>
                         @foreach ($userRoles as $role)
                             <option value="{{ $role }}">{{ ucfirst($role) }}</option>
                         @endforeach
                     </select>
                 </div>
-
+                
                 <div class="mb-4">
                     <label class="block font-medium">File Surat (.docx)</label>
                     <input type="file" name="file_surat" accept=".docx" class="w-full border rounded px-4 py-2" required>

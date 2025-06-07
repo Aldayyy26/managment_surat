@@ -93,8 +93,6 @@
         fetch(`/pengajuan_surat/get-placeholders/${templateId}`)
             .then(response => response.json())
             .then(placeholders => {
-                // placeholders is an object keyed by placeholder name, each value:
-                // { label: string, type: string, nullable: bool, options: [string] (optional) }
 
                 Object.entries(placeholders).forEach(([key, config]) => {
                     let fieldHtml = '';

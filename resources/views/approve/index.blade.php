@@ -37,13 +37,13 @@
                                             </button>
                                         </td>
                                         <td class="border border-gray-300 px-4 py-2 flex space-x-2">
-                                            <button>
+                                            <button
                                                 class="bg-green-500 text-white px-3 py-2 rounded hover:bg-green-600"
                                                 title="Setujui"
                                                 onclick="approveSurat({{ $surat->id }})">
                                                 ✔ Setujui
                                             </button>
-                                            <button>
+                                            <button
                                                 class="bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600"
                                                 title="Tolak"
                                                 onclick="rejectSurat({{ $surat->id }})">

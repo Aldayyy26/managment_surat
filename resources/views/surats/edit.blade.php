@@ -28,6 +28,11 @@
                 @method('PUT')
 
                 <div class="mb-4">
+                    <label class="block font-medium">Nomor Jenis Surat</label>
+                    <input type="text" name="no_jenis_surat" value="{{ old('no_jenis_surat', $template->no_jenis_surat) }}" class="w-full border rounded px-4 py-2" required>
+                </div>
+
+                <div class="mb-4">
                     <label class="block font-medium">Nama Surat</label>
                     <input type="text" name="nama_surat" value="{{ old('nama_surat', $template->nama_surat) }}" class="w-full border rounded px-4 py-2" required>
                 </div>

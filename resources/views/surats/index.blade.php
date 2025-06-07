@@ -27,6 +27,7 @@
                 <thead>
                     <tr class="bg-gray-100">
                         <th class="border border-gray-300 px-4 py-2">No</th>
+                        <th class="border border-gray-300 px-4 py-2">No Jenis Surat</th>
                         <th class="border border-gray-300 px-4 py-2">Nama Surat</th>
                         <th class="border border-gray-300 px-4 py-2">User Type</th>
                         <th class="border border-gray-300 px-4 py-2">Jumlah Placeholder</th>
@@ -35,11 +36,27 @@
                 </thead>
                 <tbody>
                     @forelse($surats as $index => $surat)
+                        @php
+                            // Pastikan placeholders berupa array atau kosong
+                            $placeholders = [];
+                            if (!empty($surat->placeholders)) {
+                                // Jika string JSON, decode
+                                if (is_string($surat->placeholders)) {
+                                    $decoded = json_decode($surat->placeholders, true);
+                                    $placeholders = is_array($decoded) ? $decoded : [];
+                                } elseif (is_array($surat->placeholders) || $surat->placeholders instanceof \Countable) {
+                                    // Jika sudah array atau Collection
+                                    $placeholders = $surat->placeholders;
+                                }
+                            }
+                        @endphp
+
                         <tr class="{{ $index % 2 == 0 ? 'bg-white' : 'bg-gray-50' }}">
                             <td class="border border-gray-300 px-4 py-2 text-center">{{ $surats->firstItem() + $index }}</td>
+                            <td class="border border-gray-300 px-4 py-2">{{ $surat->no_jenis_surat }}</td>
                             <td class="border border-gray-300 px-4 py-2">{{ $surat->nama_surat }}</td>
                             <td class="border border-gray-300 px-4 py-2">{{ ucfirst($surat->user_type) }}</td>
-                            <td class="border border-gray-300 px-4 py-2 text-center">{{ count($surat->placeholders ?? []) }}</td>
+                            <td class="border border-gray-300 px-4 py-2 text-center">{{ count($placeholders) }}</td>
                             <td class="border border-gray-300 px-4 py-2 text-center">
                                 <a href="{{ route('surats.edit', $surat->id) }}" class="text-blue-600 hover:underline mr-2">Edit</a>
 
@@ -52,7 +69,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center py-4">Data tidak ditemukan.</td>
+                            <td colspan="6" class="text-center py-4">Data tidak ditemukan.</td>
                         </tr>
                     @endforelse
                 </tbody>
