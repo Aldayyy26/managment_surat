@@ -40,7 +40,7 @@
                                             <button
                                                 class="bg-green-500 text-white px-3 py-2 rounded hover:bg-green-600"
                                                 title="Setujui"
-                                                onclick="approveSurat({{ $surat->id }})">
+                                                onclick="openTtdTypeModal({{ $surat->id }})">
                                                 ✔ Setujui
                                             </button>
                                             <button
@@ -66,6 +66,33 @@
                     </div>
                 </div>
 
+                <!-- Modal Pilih Tanda Tangan -->
+                <div id="ttdTypeModal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50">
+                    <div class="bg-white rounded-lg shadow-lg p-6 w-80">
+                        <h2 class="text-xl font-bold mb-4">Pilih Tanda Tangan</h2>
+                        <form id="ttdForm">
+                            @csrf
+                            <input type="hidden" name="surat_id" id="surat_id" value="">
+                            <div class="mb-4">
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="ttd_type" value="digital" class="form-radio" checked>
+                                    <span class="ml-2">Tanda Tangan Digital</span>
+                                </label>
+                            </div>
+                            <div class="mb-4">
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="ttd_type" value="basah" class="form-radio">
+                                    <span class="ml-2">Tanda Tangan Basah</span>
+                                </label>
+                            </div>
+                            <div class="flex justify-end space-x-2">
+                                <button type="button" onclick="closeTtdTypeModal()" class="bg-gray-500 text-white px-4 py-2 rounded">Batal</button>
+                                <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded">Setujui</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
@@ -88,45 +115,49 @@
         document.getElementById('suratDetailModal').classList.add('hidden');
     }
 
-    function approveSurat(suratId) {
-        Swal.fire({
-            title: 'Setujui Surat?',
-            text: 'Apakah Anda yakin ingin menyetujui surat ini?',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#28a745',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Ya, Setujui'
-        }).then(result => {
-            if (result.isConfirmed) {
-                fetch(`/pengajuan_surat/${suratId}/diterima`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    }
-                })
-                .then(res => res.json())
-                .then(data => {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Berhasil!',
-                        text: data.message,
-                        timer: 2000,
-                        showConfirmButton: false
-                    });
-                    document.querySelector(`button[onclick="approveSurat(${suratId})"]`).closest('tr').remove();
-                })
-                .catch(() => {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Gagal!',
-                        text: 'Terjadi kesalahan saat menyetujui surat.'
-                    });
-                });
-            }
-        });
+    function openTtdTypeModal(suratId) {
+        document.getElementById('surat_id').value = suratId;
+        document.getElementById('ttdTypeModal').classList.remove('hidden');
     }
+
+    function closeTtdTypeModal() {
+        document.getElementById('ttdTypeModal').classList.add('hidden');
+    }
+
+    document.getElementById('ttdForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const suratId = document.getElementById('surat_id').value;
+        const ttdType = document.querySelector('input[name="ttd_type"]:checked').value;
+
+        fetch(`/pengajuan_surat/${suratId}/diterima`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({ ttd_type: ttdType })
+        })
+        .then(res => res.json())
+        .then(data => {
+            closeTtdTypeModal();
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                text: data.message,
+                timer: 2000,
+                showConfirmButton: false
+            });
+            document.querySelector(`button[onclick="openTtdTypeModal(${suratId})"]`).closest('tr').remove();
+        })
+        .catch(() => {
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal!',
+                text: 'Terjadi kesalahan saat menyetujui surat.'
+            });
+        });
+    });
 
     function rejectSurat(suratId) {
         Swal.fire({
@@ -167,4 +198,4 @@
             }
         });
     }
-</script>   
+</script>

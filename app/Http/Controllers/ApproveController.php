@@ -58,21 +58,33 @@ class ApproveController extends Controller
     public function approve(Request $request, PengajuanSurat $pengajuanSurat)
     {
         try {
-            $signaturePath = SignatureController::getSignaturePath();
+            $ttdType = $request->input('ttd_type'); // 'basah' atau 'digital'
 
-            if (!Storage::disk('public')->exists($signaturePath)) {
-                return response()->json(['message' => 'Tanda tangan kaprodi belum disimpan. Silakan buat terlebih dahulu.'], 400);
+            if ($ttdType === 'digital') {
+                $signaturePath = SignatureController::getSignaturePath();
+
+                if (!Storage::disk('public')->exists($signaturePath)) {
+                    return response()->json(['message' => 'Tanda tangan kaprodi belum disimpan. Silakan buat terlebih dahulu.'], 400);
+                }
+
+                $pengajuanSurat->update([
+                    'status' => 'diterima',
+                    'ttd_type' => 'digital',
+                    'signature' => $signaturePath,
+                ]);
+            } else {
+                // TTD basah = set status diterima tapi tanda tangan kosong/null
+                $pengajuanSurat->update([
+                    'status' => 'diterima',
+                    'ttd_type' => 'basah',
+                    'signature' => null,
+                ]);
             }
 
-            $pengajuanSurat->update([
-                'status' => 'diterima',
-                'signature' => $signaturePath,
-            ]);
-
-            // Kirim WA
+            // Kirim WA notifikasi
             $user = $pengajuanSurat->user;
             if ($user && $user->whatsapp_number) {
-                $message = "Halo {$user->name}, pengajuan surat Anda dengan judul surat {$pengajuanSurat->nama_surat} telah *disetujui*. Silakan cek aplikasi untuk mengunduh.";
+                $message = "Halo {$user->name}, pengajuan surat Anda dengan judul surat {$pengajuanSurat->nama_surat} telah *disetujui* dengan tipe tanda tangan: {$ttdType}. Silakan cek aplikasi untuk mengunduh.";
                 $this->sendWablasNotification($user->whatsapp_number, $message);
             }
 
@@ -82,6 +94,7 @@ class ApproveController extends Controller
             return response()->json(['message' => 'Terjadi kesalahan: ' . $e->getMessage()], 500);
         }
     }
+
 
     public function reject(PengajuanSurat $pengajuanSurat)
     {
