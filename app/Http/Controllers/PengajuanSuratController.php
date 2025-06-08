@@ -247,37 +247,42 @@ public function store(Request $request)
         $placeholders = json_decode($template->required_placeholders, true) ?? [];
 
         $systemData = $this->getKaprodiData();
-
         $nomorSurat = $this->getNomorSurat($pengajuan);
-
         $systemData['nomor_surat'] = $nomorSurat;
 
-        // Gabungkan data user input dan data sistem (nomor surat, ttd, dll)
+        // Gabungkan data dari user dan sistem
         $allData = array_merge($konten, $systemData);
 
-        // Isi placeholder di template dengan data yang tersedia
-        foreach ($allData as $key => $value) {
+        // Isi semua placeholder, kosongkan kalau data gak ada
+        foreach ($placeholders as $key) {
             if (in_array($key, ['ttd_kaprodi', 'stempel'])) continue;
 
+            $value = $allData[$key] ?? '';
+
+            // Kalau bukan string/angka, convert ke json string
             if (!is_string($value) && !is_numeric($value)) {
                 $value = json_encode($value);
             }
-            $templateProcessor->setValue($key, $value);
+
+            // Kosongkan placeholder kalau null atau kosong
+            $templateProcessor->setValue($key, $value ?? '');
         }
 
+        // Isi image placeholder untuk tanda tangan & stempel
         $templateProcessor->setImageValue('ttd_kaprodi', [
             'path' => storage_path('app/public/signatures/signature_kaprodi.png'),
             'width' => 150,
             'height' => 80,
         ]);
+
         $templateProcessor->setImageValue('stempel', [
             'path' => storage_path('app/public/stempels/stempel_kaprodi.png'),
             'width' => 150,
             'height' => 80,
         ]);
 
+        // Generate nama file output
         $filename = Str::slug($template->nama_surat) . '-' . time() . '.docx';
-
         $outputDir = storage_path('app/public/generated');
 
         if (!file_exists($outputDir)) {
@@ -285,7 +290,6 @@ public function store(Request $request)
         }
 
         $outputPath = $outputDir . '/' . $filename;
-
         $templateProcessor->saveAs($outputPath);
 
         return response()->download($outputPath)->deleteFileAfterSend(true);
