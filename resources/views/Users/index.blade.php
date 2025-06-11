@@ -8,22 +8,6 @@
                 Tambah User
             </a>
         </div>
-
-        <!-- FORM IMPORT EXCEL -->
-        <div class="mt-4">
-            <form action="{{ route('users.import') }}" method="POST" enctype="multipart/form-data" class="flex items-center gap-3">
-                @csrf
-                <input type="file" name="file" accept=".xlsx,.csv" required
-                    class="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-                <button type="submit" 
-                    class="px-5 py-2 bg-green-600 text-white rounded font-semibold hover:bg-green-700 transition duration-300">
-                    Import Excel
-                </button>
-            </form>
-            @error('file')
-                <p class="text-red-600 mt-1 text-sm">{{ $message }}</p>
-            @enderror
-        </div>
     </x-slot>
 
     <div class="py-8">
@@ -32,10 +16,13 @@
             <div class="mb-4">
                 <div class="flex justify-end">
                     <form method="GET" action="{{ route('users.index') }}" class="flex flex-wrap sm:flex-nowrap gap-4 items-center">
-
                         <input type="text" name="search_name" placeholder="Cari berdasarkan nama" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" value="{{ request()->get('search_name') }}">
 
                         <input type="text" name="search_nim" placeholder="Cari berdasarkan NIM" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" value="{{ request()->get('search_nim') }}">
+
+                        <input type="text" name="search_nip" placeholder="Cari berdasarkan NIP" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" value="{{ request()->get('search_nip') }}">
+
+                        <input type="text" name="search_nidn" placeholder="Cari berdasarkan NIDN" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" value="{{ request()->get('search_nidn') }}">
 
                         <select name="search_role" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
                             <option value="">Pilih Role</option>
@@ -52,10 +39,10 @@
                             Cari
                         </button>
 
-                        @if(request()->filled('search_name') || request()->filled('search_nim') || request()->filled('search_role'))
-                            <a href="{{ route('users.index') }}" class="px-6 py-2 bg-gray-400 text-white rounded-lg font-semibold hover:bg-gray-500 transition duration-300">
-                                Batal
-                            </a>
+                        @if(request()->filled('search_name') || request()->filled('search_nim') || request()->filled('search_nip') || request()->filled('search_nidn') || request()->filled('search_role'))
+                        <a href="{{ route('users.index') }}" class="px-6 py-2 bg-gray-400 text-white rounded-lg font-semibold hover:bg-gray-500 transition duration-300">
+                            Batal
+                        </a>
                         @endif
                     </form>
                 </div>
@@ -65,27 +52,34 @@
                 <div class="overflow-x-auto">
                     @foreach ($users as $user)
                     <div class="rounded-lg p-4 mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between">
-                        <!-- User Information -->
+                        <!-- User Info -->
                         <div class="flex-1 flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-6">
-                            <!-- Name Section -->
                             <div class="flex-1 min-w-[150px]">
                                 <p class="text-sm font-medium text-gray-700">Nama</p>
                                 <p class="mt-1 text-lg font-semibold text-gray-900">{{ $user->name }}</p>
                             </div>
-
-                            <!-- Email Section -->
                             <div class="flex-1 min-w-[200px]">
                                 <p class="text-sm font-medium text-gray-700">Email</p>
                                 <p class="mt-1 text-gray-900">{{ $user->email }}</p>
                             </div>
-
-                            <!-- Semester Section -->
                             <div class="flex-1 min-w-[120px]">
                                 <p class="text-sm font-medium text-gray-700">Semester</p>
-                                <p class="mt-1 text-gray-900">{{ $user->semester ?? '-' }}</p>
+                                <p class="mt-1 text-gray-900">
+                                    @if ($user->hasRole('mahasiswa'))
+                                        {{ $user->semester ?? '-' }}
+                                    @else
+                                        -
+                                    @endif
+                                </p>
                             </div>
-
-                            <!-- Roles Section -->
+                            <div class="flex-1 min-w-[150px]">
+                                <p class="text-sm font-medium text-gray-700">NIP</p>
+                                <p class="mt-1 text-gray-900">{{ $user->nip ?? '-' }}</p>
+                            </div>
+                            <div class="flex-1 min-w-[150px]">
+                                <p class="text-sm font-medium text-gray-700">NIDN</p>
+                                <p class="mt-1 text-gray-900">{{ $user->nidn ?? '-' }}</p>
+                            </div>
                             <div class="flex-1 min-w-[150px]">
                                 <p class="text-sm font-medium text-gray-700">Roles</p>
                                 <p class="mt-1 text-gray-900">
@@ -120,14 +114,13 @@
         </div>
     </div>
 
-    <!-- SweetAlert2 Script -->
+    <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             document.querySelectorAll('.delete-form').forEach(form => {
                 form.addEventListener('submit', function (e) {
                     e.preventDefault();
-
                     Swal.fire({
                         title: 'Apakah Anda yakin?',
                         text: "Data ini akan dihapus dan tidak dapat dikembalikan!",

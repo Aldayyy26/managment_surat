@@ -45,6 +45,17 @@ class UserController extends Controller
             });
         }
 
+        // Search by NIP
+        if ($request->has('search_nip') && $request->search_nip != '') {
+            $query->where('nip', 'like', '%' . $request->search_nip . '%');
+        }
+
+        // Search by NIDN
+        if ($request->has('search_nidn') && $request->search_nidn != '') {
+            $query->where('nidn', 'like', '%' . $request->search_nidn . '%');
+        }
+
+
         $users = $query->get();
 
         // Untuk dropdown role di filter nanti, ambil semua role
@@ -72,7 +83,7 @@ class UserController extends Controller
             'nip' => 'nullable|string|max:255',
             'status' => 'required|in:aktif,nonaktif',
             'semester' => 'nullable|string|max:20',
-            'roles' => 'required|string', 
+            'roles' => 'required|string',
             'whatsapp_number' => 'nullable|string|max:20|unique:users,whatsapp_number',
         ]);
 
