@@ -24,7 +24,7 @@ class PengajuanSuratController extends Controller
     public function index(Request $request)
     {
         $query = PengajuanSurat::with('template')
-                    ->where('user_id', Auth::id());
+            ->where('user_id', Auth::id());
 
         if ($request->filled('judul')) {
             $query->whereHas('template', function ($q) use ($request) {
@@ -75,7 +75,7 @@ class PengajuanSuratController extends Controller
     public function create()
     {
         $user = Auth::user();
-        $role = $user->roles->pluck('name')->first(); 
+        $role = $user->roles->pluck('name')->first();
         logger("Role user yang login: " . $role);
 
         $templates = TemplateSurat::where('user_type', $role)->get();
@@ -126,68 +126,68 @@ class PengajuanSuratController extends Controller
 
 
 
-public function store(Request $request)
-{
-    Log::info('Masuk ke method store.');
+    public function store(Request $request)
+    {
+        Log::info('Masuk ke method store.');
 
-    $request->validate([
-        'template_id' => 'required|exists:template_surats,id',
-        'konten' => 'required|array',
-    ]);
+        $request->validate([
+            'template_id' => 'required|exists:template_surats,id',
+            'konten' => 'required|array',
+        ]);
 
-    Log::info('Validasi berhasil.', $request->all());
+        Log::info('Validasi berhasil.', $request->all());
 
-    $template = TemplateSurat::findOrFail($request->template_id);
-    $placeholders = json_decode($template->required_placeholders, true);
+        $template = TemplateSurat::findOrFail($request->template_id);
+        $placeholders = json_decode($template->required_placeholders, true);
 
-    Log::info('Template ditemukan:', ['judul' => $template->judul]);
+        Log::info('Template ditemukan:', ['judul' => $template->judul]);
 
-    if (!is_array($placeholders)) {
-        Log::error('Placeholder tidak valid.', ['raw' => $template->required_placeholders]);
-        return back()->with('error', 'Format placeholders pada template tidak valid.');
-    }
-
-    foreach ($placeholders as $key => $config) {
-        if (!isset($request->konten[$key]) || empty($request->konten[$key])) {
-            Log::warning("Konten '{$key}' kosong.");
-            return back()->withInput()->withErrors([
-                "konten.{$key}" => "Field '{$config['label']}' wajib diisi.",
-            ]);
-        }
-    }
-
-    Log::info('Semua konten placeholder valid.');
-
-    $pengajuan = PengajuanSurat::create([
-        'user_id' => Auth::id(),
-        'template_id' => $request->template_id,
-        'konten' => json_encode($request->konten),
-        'status' => 'proses',
-    ]);
-
-    Log::info('Pengajuan surat berhasil dibuat.', ['id' => $pengajuan->id]);
-
-    $kaprodis = User::role('kepalaprodi')->get();
-    $user = Auth::user();
-
-    foreach ($kaprodis as $kaprodi) {
-        $phone = $kaprodi->whatsapp_number;
-
-        if (!$phone) {
-            Log::warning("User {$kaprodi->id} tidak punya nomor WhatsApp.");
-            continue;
+        if (!is_array($placeholders)) {
+            Log::error('Placeholder tidak valid.', ['raw' => $template->required_placeholders]);
+            return back()->with('error', 'Format placeholders pada template tidak valid.');
         }
 
-        $message = "Halo {$kaprodi->name}, ada pengajuan surat baru dari {$user->name}.\n" .
-                   "Nama Surat: {$template->nama_surat}\n" .
-                   "Silakan cek aplikasi untuk melakukan approval.";
+        foreach ($placeholders as $key => $config) {
+            if (!isset($request->konten[$key]) || empty($request->konten[$key])) {
+                Log::warning("Konten '{$key}' kosong.");
+                return back()->withInput()->withErrors([
+                    "konten.{$key}" => "Field '{$config['label']}' wajib diisi.",
+                ]);
+            }
+        }
 
-        Log::info("Mengirim notifikasi ke {$phone}.");
-        $this->sendWablasNotification($phone, $message);
+        Log::info('Semua konten placeholder valid.');
+
+        $pengajuan = PengajuanSurat::create([
+            'user_id' => Auth::id(),
+            'template_id' => $request->template_id,
+            'konten' => json_encode($request->konten),
+            'status' => 'proses',
+        ]);
+
+        Log::info('Pengajuan surat berhasil dibuat.', ['id' => $pengajuan->id]);
+
+        $kaprodis = User::role('kepalaprodi')->get();
+        $user = Auth::user();
+
+        foreach ($kaprodis as $kaprodi) {
+            $phone = $kaprodi->whatsapp_number;
+
+            if (!$phone) {
+                Log::warning("User {$kaprodi->id} tidak punya nomor WhatsApp.");
+                continue;
+            }
+
+            $message = "Halo {$kaprodi->name}, ada pengajuan surat baru dari {$user->name}.\n" .
+                "Nama Surat: {$template->nama_surat}\n" .
+                "Silakan cek aplikasi untuk melakukan approval.";
+
+            Log::info("Mengirim notifikasi ke {$phone}.");
+            $this->sendWablasNotification($phone, $message);
+        }
+
+        return redirect()->route('pengajuan_surat.index')->with('success', 'Pengajuan surat berhasil diajukan dan notifikasi terkirim.');
     }
-
-    return redirect()->route('pengajuan_surat.index')->with('success', 'Pengajuan surat berhasil diajukan dan notifikasi terkirim.');
-}
 
 
     private function getNomorSurat(PengajuanSurat $pengajuan)
@@ -197,7 +197,7 @@ public function store(Request $request)
         $kodeJenis = str_pad($template->no_jenis_surat, 2, '0', STR_PAD_LEFT);
 
         $jumlahSurat = PengajuanSurat::where('template_id', $template->id)
-            ->where('status', 'disetujui') 
+            ->where('status', 'disetujui')
             ->count() + 1;
 
         $nomorUrut = str_pad($jumlahSurat, 2, '0', STR_PAD_LEFT);
@@ -205,9 +205,18 @@ public function store(Request $request)
         $bagianTetap = 'TI.PHB';
 
         $bulanRomawi = [
-            1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV',
-            5 => 'V', 6 => 'VI', 7 => 'VII', 8 => 'VIII',
-            9 => 'IX', 10 => 'X', 11 => 'XI', 12 => 'XII'
+            1 => 'I',
+            2 => 'II',
+            3 => 'III',
+            4 => 'IV',
+            5 => 'V',
+            6 => 'VI',
+            7 => 'VII',
+            8 => 'VIII',
+            9 => 'IX',
+            10 => 'X',
+            11 => 'XI',
+            12 => 'XII'
         ];
 
         $bulan = $bulanRomawi[date('n')];
@@ -250,25 +259,19 @@ public function store(Request $request)
         $nomorSurat = $this->getNomorSurat($pengajuan);
         $systemData['nomor_surat'] = $nomorSurat;
 
-        // Gabungkan data dari user dan sistem
         $allData = array_merge($konten, $systemData);
 
-        // Isi semua placeholder, kosongkan kalau data gak ada
-        foreach ($placeholders as $key) {
+        foreach ($allData as $key => $value) {
             if (in_array($key, ['ttd_kaprodi', 'stempel'])) continue;
 
-            $value = $allData[$key] ?? '';
-
-            // Kalau bukan string/angka, convert ke json string
             if (!is_string($value) && !is_numeric($value)) {
                 $value = json_encode($value);
             }
 
-            // Kosongkan placeholder kalau null atau kosong
             $templateProcessor->setValue($key, $value ?? '');
         }
 
-        // Isi image placeholder untuk tanda tangan & stempel
+
         $templateProcessor->setImageValue('ttd_kaprodi', [
             'path' => storage_path('app/public/signatures/signature_kaprodi.png'),
             'width' => 150,
@@ -281,7 +284,6 @@ public function store(Request $request)
             'height' => 80,
         ]);
 
-        // Generate nama file output
         $filename = Str::slug($template->nama_surat) . '-' . time() . '.docx';
         $outputDir = storage_path('app/public/generated');
 
@@ -295,12 +297,11 @@ public function store(Request $request)
         return response()->download($outputPath)->deleteFileAfterSend(true);
     }
 
-
     public function edit($id)
     {
         $pengajuan = PengajuanSurat::where('id', $id)
-                        ->where('user_id', Auth::id())
-                        ->firstOrFail();
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
 
         $templates = TemplateSurat::all();
 
@@ -314,8 +315,8 @@ public function store(Request $request)
     public function update(Request $request, $id)
     {
         $pengajuan = PengajuanSurat::where('id', $id)
-                        ->where('user_id', Auth::id())
-                        ->firstOrFail();
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
 
         $request->validate([
             'template_id' => 'required|exists:template_surats,id',
@@ -341,5 +342,4 @@ public function store(Request $request)
 
         return redirect()->route('pengajuan_surat.index')->with('success', 'Pengajuan surat berhasil diperbarui.');
     }
-
 }
