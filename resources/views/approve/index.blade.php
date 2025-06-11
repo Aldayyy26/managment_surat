@@ -161,13 +161,21 @@
 
     function rejectSurat(suratId) {
         Swal.fire({
-            title: 'Tolak Surat?',
-            text: 'Apakah Anda yakin ingin menolak surat ini?',
-            icon: 'warning',
+            title: 'Tolak Surat',
+            input: 'textarea',
+            inputLabel: 'Alasan Penolakan',
+            inputPlaceholder: 'Tuliskan alasan mengapa surat ini ditolak...',
+            inputAttributes: {
+                'aria-label': 'Alasan penolakan'
+            },
             showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Ya, Tolak'
+            confirmButtonText: 'Kirim Penolakan',
+            cancelButtonText: 'Batal',
+            inputValidator: (value) => {
+                if (!value) {
+                    return 'Alasan penolakan wajib diisi!';
+                }
+            }
         }).then(result => {
             if (result.isConfirmed) {
                 fetch(`/pengajuan_surat/${suratId}/ditolak`, {
@@ -175,7 +183,10 @@
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    }
+                    },
+                    body: JSON.stringify({
+                        catatan: result.value
+                    })
                 })
                 .then(res => res.json())
                 .then(data => {
@@ -198,4 +209,5 @@
             }
         });
     }
+
 </script>

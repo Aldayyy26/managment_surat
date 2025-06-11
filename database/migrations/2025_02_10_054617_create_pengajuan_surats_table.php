@@ -14,6 +14,7 @@ return new class extends Migration {
             $table->json('konten'); 
             $table->enum('status', ['proses', 'diterima', 'ditolak'])->default('proses');
             $table->text('signature')->nullable(); 
+            $table->text('catatan_penolakan')->nullable();
             $table->timestamps();
         });
     }

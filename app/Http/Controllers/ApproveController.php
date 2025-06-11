@@ -73,7 +73,6 @@ class ApproveController extends Controller
                     'signature' => $signaturePath,
                 ]);
             } else {
-                // TTD basah = set status diterima tapi tanda tangan kosong/null
                 $pengajuanSurat->update([
                     'status' => 'diterima',
                     'ttd_type' => 'basah',
@@ -84,7 +83,7 @@ class ApproveController extends Controller
             // Kirim WA notifikasi
             $user = $pengajuanSurat->user;
             if ($user && $user->whatsapp_number) {
-                $message = "Halo {$user->name}, pengajuan surat Anda dengan judul surat {$pengajuanSurat->nama_surat} telah *disetujui* dengan tipe tanda tangan: {$ttdType}. Silakan cek aplikasi untuk mengunduh.";
+                $message = "Halo {$user->name}, pengajuan surat Anda dengan judul surat $pengajuanSurat->template->nama_surat telah *disetujui* dengan tipe tanda tangan: {$ttdType}. Silakan cek aplikasi untuk mengunduh.";
                 $this->sendWablasNotification($user->whatsapp_number, $message);
             }
 
@@ -96,21 +95,24 @@ class ApproveController extends Controller
     }
 
 
-    public function reject(PengajuanSurat $pengajuanSurat)
+    public function reject(Request $request, PengajuanSurat $pengajuanSurat)
     {
+        $catatan = $request->input('catatan');
+
         $pengajuanSurat->update([
             'status' => 'ditolak',
+            'catatan_penolakan' => $catatan,
         ]);
 
-        // Kirim notifikasi WA ke user pengaju
         $user = $pengajuanSurat->user;
         if ($user && $user->whatsapp_number) {
-            $message = "Halo {$user->name},pengajuan surat Anda dengan judul surat{$pengajuanSurat->nama_surat} telah *ditolak* oleh kaprodi. silahkan ajukan ulang dengan data yang benar.";
+            $message = "Halo {$user->name}, pengajuan surat Anda dengan judul surat $pengajuanSurat->template->nama_surat telah *ditolak*. Alasan: {$catatan}";
             $this->sendWablasNotification($user->whatsapp_number, $message);
         }
 
         return response()->json(['message' => 'Surat telah ditolak.']);
     }
+
 
     public function detail($id)
     {
