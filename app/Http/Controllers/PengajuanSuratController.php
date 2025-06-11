@@ -179,7 +179,7 @@ public function store(Request $request)
         }
 
         $message = "Halo {$kaprodi->name}, ada pengajuan surat baru dari {$user->name}.\n" .
-                   "Jenis Surat: {$template->judul}\n" .
+                   "Nama Surat: {$template->nama_surat}\n" .
                    "Silakan cek aplikasi untuk melakukan approval.";
 
         Log::info("Mengirim notifikasi ke {$phone}.");
