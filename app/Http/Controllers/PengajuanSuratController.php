@@ -194,10 +194,12 @@ class PengajuanSuratController extends Controller
     private function getNomorSurat(PengajuanSurat $pengajuan)
     {
         $template = $pengajuan->template;
-
         $kodeJenis = str_pad($template->no_jenis_surat, 2, '0', STR_PAD_LEFT);
 
-        $jumlahSurat = PengajuanSurat::where('template_id', $template->id)
+        // Hitung jumlah pengajuan disetujui berdasarkan kode jenis surat (bukan template_id)
+        $jumlahSurat = PengajuanSurat::whereHas('template', function ($query) use ($template) {
+            $query->where('no_jenis_surat', $template->no_jenis_surat);
+        })
             ->where('status', 'disetujui')
             ->count() + 1;
 
@@ -225,8 +227,6 @@ class PengajuanSuratController extends Controller
 
         return "{$nomorUrut}.{$kodeJenis}/{$bagianTetap}/{$bulan}/{$tahun}";
     }
-
-
 
     private function getKaprodiData()
     {
@@ -274,7 +274,6 @@ class PengajuanSuratController extends Controller
 
         if ($pengajuan->signature !== null) {
             $signaturePath = storage_path('app/public/' . $pengajuan->signature);
-
             if (file_exists($signaturePath)) {
                 $templateProcessor->setImageValue('ttd_kaprodi', [
                     'path' => $signaturePath,
@@ -288,28 +287,43 @@ class PengajuanSuratController extends Controller
                     'height' => 80,
                 ]);
             } else {
-                // Signature path tidak valid, kosongkan
                 $templateProcessor->setValue('ttd_kaprodi', '');
                 $templateProcessor->setValue('stempel', '');
             }
         } else {
-            // Tidak ada signature, kosongkan placeholder
             $templateProcessor->setValue('ttd_kaprodi', '');
             $templateProcessor->setValue('stempel', '');
         }
 
-        $filename = Str::slug($template->nama_surat) . '-' . time() . '.docx';
+        $filename = Str::slug($template->nama_surat) . '-' . time();
         $outputDir = storage_path('app/public/generated');
 
         if (!file_exists($outputDir)) {
             mkdir($outputDir, 0755, true);
         }
 
-        $outputPath = $outputDir . '/' . $filename;
-        $templateProcessor->saveAs($outputPath);
+        $docxPath = $outputDir . '/' . $filename . '.docx';
+        $pdfPath  = $outputDir . '/' . $filename . '.pdf';
 
-        return response()->download($outputPath)->deleteFileAfterSend(true);
+        $templateProcessor->saveAs($docxPath);
+
+        // Path LibreOffice di Windows
+        $libreOfficePath = '"C:\Program Files\LibreOffice\program\soffice.exe"';
+
+        // Jalankan LibreOffice convert
+        $command = $libreOfficePath . ' --headless --convert-to pdf --outdir "' . $outputDir . '" "' . $docxPath . '"';
+        exec($command, $output, $resultCode);
+
+        if ($resultCode !== 0 || !file_exists($pdfPath)) {
+            return back()->with('error', 'Gagal mengonversi file ke PDF.');
+        }
+
+        // Optional: hapus file .docx kalau tidak perlu
+        unlink($docxPath);
+
+        return response()->download($pdfPath)->deleteFileAfterSend(true);
     }
+
 
 
 
