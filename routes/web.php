@@ -13,25 +13,25 @@ use App\Http\Controllers\KopSuratController;
 use App\Http\Controllers\SignatureController;
 
 
-Route::get('/', [FrontController::class, 'index'])->name('frontend.index'); 
+Route::get('/', [FrontController::class, 'index'])->name('frontend.index');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->name('dashboard');
 });
-    Route::post('/users/import', [UserController::class, 'import'])->name('users.import');
-    Route::get('/admin/report', [ReportController::class, 'history'])->name('admin.report');
-    Route::middleware(['auth'])->group(function () {
+Route::post('/users/import', [UserController::class, 'import'])->name('users.import');
+Route::get('/admin/report', [ReportController::class, 'history'])->name('admin.report');
+Route::middleware(['auth'])->group(function () {
 
     Route::resource('stempels', StempelController::class);
 
     Route::get('/approve', [ApproveController::class, 'index'])->name('approve.index');
     Route::post('/pengajuan_surat/{pengajuanSurat}/diterima', [ApproveController::class, 'approve']);
     Route::post('/pengajuan_surat/{pengajuanSurat}/ditolak', [ApproveController::class, 'reject']);
-    
+
     Route::get('/pengajuan_surat/get-placeholders/{id}', [PengajuanSuratController::class, 'getPlaceholders'])->name('pengajuan_surat.get_placeholders');
-    
+
     Route::middleware(['auth'])->group(function () {
         Route::resource('pengajuan_surat', PengajuanSuratController::class)->except(['edit']);
         Route::get('/pengajuan_surat/{id}/edit', [PengajuanSuratController::class, 'edit'])->name('pengajuan_surat.edit');
@@ -61,4 +61,4 @@ Route::put('/surats/{template}', [TemplateSuratController::class, 'update'])->na
 Route::delete('/surats/{template}', [TemplateSuratController::class, 'destroy'])->name('surats.destroy');
 
 // Auth route
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

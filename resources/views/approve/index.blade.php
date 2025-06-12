@@ -25,32 +25,30 @@
                             </thead>
                             <tbody>
                                 @foreach ($pengajuanSurats as $index => $surat)
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="border border-gray-300 px-4 py-2">{{ $index + 1 }}</td>
-                                        <td class="border border-gray-300 px-4 py-2">{{ $surat->template->nama_surat }}</td>
-                                        <td class="border border-gray-300 px-4 py-2">{{ $surat->created_at->format('Y-m-d') }}</td>
-                                        <td class="border border-gray-300 px-4 py-2">{{ $surat->user->name }}</td>
-                                        <td class="border border-gray-300 px-4 py-2">
-                                            {{ Str::limit(implode(', ', json_decode($surat->konten, true)), 50, '...') }}
-                                            <button class="text-blue-500 underline text-sm" onclick="showSuratDetail(`{{ json_encode(json_decode($surat->konten, true)) }}`)">
-                                                Lihat Detail
-                                            </button>
-                                        </td>
-                                        <td class="border border-gray-300 px-4 py-2 flex space-x-2">
-                                            <button
-                                                class="bg-green-500 text-white px-3 py-2 rounded hover:bg-green-600"
-                                                title="Setujui"
-                                                onclick="openTtdTypeModal({{ $surat->id }})">
-                                                ✔ Setujui
-                                            </button>
-                                            <button
-                                                class="bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600"
-                                                title="Tolak"
-                                                onclick="rejectSurat({{ $surat->id }})">
-                                                ✖ Tolak
-                                            </button>
-                                        </td>
-                                    </tr>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="border border-gray-300 px-4 py-2">{{ $index + 1 }}</td>
+                                    <td class="border border-gray-300 px-4 py-2">{{ $surat->template->nama_surat }}</td>
+                                    <td class="border border-gray-300 px-4 py-2">{{ $surat->created_at->format('Y-m-d') }}</td>
+                                    <td class="border border-gray-300 px-4 py-2">{{ $surat->user->name }}</td>
+                                    <td class="border border-gray-300 px-4 py-2">
+                                        {{ Str::limit(implode(', ', json_decode($surat->konten, true)), 50, '...') }}
+                                        <button class="text-blue-500 underline text-sm" onclick="showSuratDetail(`{{ json_encode(json_decode($surat->konten, true)) }}`)">Lihat Detail</button>
+                                    </td>
+                                    <td class="border border-gray-300 px-4 py-2 flex space-x-2">
+                                        <button
+                                            class="bg-green-500 text-white px-3 py-2 rounded hover:bg-green-600"
+                                            title="Setujui"
+                                            onclick="openTtdTypeModal({{ $surat->id }})">
+                                            ✔ Setujui
+                                        </button>
+                                        <button
+                                            class="bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600"
+                                            title="Tolak"
+                                            onclick="rejectSurat({{ $surat->id }})">
+                                            ✖ Tolak
+                                        </button>
+                                    </td>
+                                </tr>
                                 @endforeach
                             </tbody>
                         </table>
@@ -101,6 +99,9 @@
 <!-- SweetAlert -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+<!-- CSRF Token -->
+<meta name="csrf-token" content="{{ csrf_token() }}">
+
 <script>
     function showSuratDetail(content) {
         const parsedContent = JSON.parse(content);
@@ -131,32 +132,34 @@
         const ttdType = document.querySelector('input[name="ttd_type"]:checked').value;
 
         fetch(`/pengajuan_surat/${suratId}/diterima`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            },
-            body: JSON.stringify({ ttd_type: ttdType })
-        })
-        .then(res => res.json())
-        .then(data => {
-            closeTtdTypeModal();
-            Swal.fire({
-                icon: 'success',
-                title: 'Berhasil!',
-                text: data.message,
-                timer: 2000,
-                showConfirmButton: false
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({
+                    ttd_type: ttdType
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                closeTtdTypeModal();
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: data.message,
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                document.querySelector(`button[onclick="openTtdTypeModal(${suratId})"]`).closest('tr').remove();
+            })
+            .catch(() => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal!',
+                    text: 'Terjadi kesalahan saat menyetujui surat.'
+                });
             });
-            document.querySelector(`button[onclick="openTtdTypeModal(${suratId})"]`).closest('tr').remove();
-        })
-        .catch(() => {
-            Swal.fire({
-                icon: 'error',
-                title: 'Gagal!',
-                text: 'Terjadi kesalahan saat menyetujui surat.'
-            });
-        });
     });
 
     function rejectSurat(suratId) {
@@ -179,35 +182,34 @@
         }).then(result => {
             if (result.isConfirmed) {
                 fetch(`/pengajuan_surat/${suratId}/ditolak`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                    },
-                    body: JSON.stringify({
-                        catatan: result.value
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        },
+                        body: JSON.stringify({
+                            alasan: result.value
+                        })
                     })
-                })
-                .then(res => res.json())
-                .then(data => {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Ditolak!',
-                        text: data.message,
-                        timer: 2000,
-                        showConfirmButton: false
+                    .then(res => res.json())
+                    .then(data => {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Ditolak',
+                            text: data.message,
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                        document.querySelector(`button[onclick="rejectSurat(${suratId})"]`).closest('tr').remove();
+                    })
+                    .catch(() => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal!',
+                            text: 'Terjadi kesalahan saat menolak surat.'
+                        });
                     });
-                    document.querySelector(`button[onclick="rejectSurat(${suratId})"]`).closest('tr').remove();
-                })
-                .catch(() => {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Gagal!',
-                        text: 'Terjadi kesalahan saat menolak surat.'
-                    });
-                });
             }
         });
     }
-
 </script>

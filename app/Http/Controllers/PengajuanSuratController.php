@@ -8,6 +8,7 @@ use App\Models\TemplateSurat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use Illuminate\Support\Facades\Storage;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Log;
 use Spatie\Permission\Models\Role;
@@ -271,18 +272,31 @@ class PengajuanSuratController extends Controller
             $templateProcessor->setValue($key, $value ?? '');
         }
 
+        if ($pengajuan->signature !== null) {
+            $signaturePath = storage_path('app/public/' . $pengajuan->signature);
 
-        $templateProcessor->setImageValue('ttd_kaprodi', [
-            'path' => storage_path('app/public/signatures/signature_kaprodi.png'),
-            'width' => 150,
-            'height' => 80,
-        ]);
+            if (file_exists($signaturePath)) {
+                $templateProcessor->setImageValue('ttd_kaprodi', [
+                    'path' => $signaturePath,
+                    'width' => 150,
+                    'height' => 80,
+                ]);
 
-        $templateProcessor->setImageValue('stempel', [
-            'path' => storage_path('app/public/stempels/stempel_kaprodi.png'),
-            'width' => 150,
-            'height' => 80,
-        ]);
+                $templateProcessor->setImageValue('stempel', [
+                    'path' => storage_path('app/public/stempels/stempel_kaprodi.png'),
+                    'width' => 150,
+                    'height' => 80,
+                ]);
+            } else {
+                // Signature path tidak valid, kosongkan
+                $templateProcessor->setValue('ttd_kaprodi', '');
+                $templateProcessor->setValue('stempel', '');
+            }
+        } else {
+            // Tidak ada signature, kosongkan placeholder
+            $templateProcessor->setValue('ttd_kaprodi', '');
+            $templateProcessor->setValue('stempel', '');
+        }
 
         $filename = Str::slug($template->nama_surat) . '-' . time() . '.docx';
         $outputDir = storage_path('app/public/generated');
@@ -296,6 +310,8 @@ class PengajuanSuratController extends Controller
 
         return response()->download($outputPath)->deleteFileAfterSend(true);
     }
+
+
 
     public function edit($id)
     {
