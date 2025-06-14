@@ -29,7 +29,7 @@
                         <th class="border border-gray-300 px-4 py-2">No</th>
                         <th class="border border-gray-300 px-4 py-2">No Jenis Surat</th>
                         <th class="border border-gray-300 px-4 py-2">Nama Surat</th>
-                        <th class="border border-gray-300 px-4 py-2">User Type</th>
+                        <th class="border border-gray-300 px-4 py-2">Jenis Pengguna</th>
                         <th class="border border-gray-300 px-4 py-2">Jumlah Placeholder</th>
                         <th class="border border-gray-300 px-4 py-2">Aksi</th>
                     </tr>
@@ -54,8 +54,8 @@
                         <tr class="{{ $index % 2 == 0 ? 'bg-white' : 'bg-gray-50' }}">
                             <td class="border border-gray-300 px-4 py-2 text-center">{{ $surats->firstItem() + $index }}</td>
                             <td class="border border-gray-300 px-4 py-2">{{ $surat->no_jenis_surat }}</td>
-                            <td class="border border-gray-300 px-4 py-2">{{ $surat->nama_surat }}</td>
-                            <td class="border border-gray-300 px-4 py-2">{{ ucfirst($surat->user_type) }}</td>
+                            <td class="border border-gray-300 px-4 py-2 text-center">{{ $surat->nama_surat }}</td>
+                            <td class="border border-gray-300 px-4 py-2 text-center">{{ ucfirst($surat->user_type) }}</td>
                             <td class="border border-gray-300 px-4 py-2 text-center">{{ count($placeholders) }}</td>
                             <td class="border border-gray-300 px-4 py-2 text-center">
                                 <a href="{{ route('surats.edit', $surat->id) }}" class="text-blue-600 hover:underline mr-2">Edit</a>

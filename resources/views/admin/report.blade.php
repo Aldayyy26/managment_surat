@@ -23,8 +23,7 @@
                                     id="pengaju"
                                     value="{{ request('pengaju') }}"
                                     placeholder="Nama pengaju"
-                                    class="border border-gray-300 rounded-md px-4 py-2 w-full sm:w-52"
-                                />
+                                    class="border border-gray-300 rounded-md px-4 py-2 w-full sm:w-52" />
                             </div>
 
                             <div>
@@ -35,8 +34,7 @@
                                     id="nama_surat"
                                     value="{{ request('nama_surat') }}"
                                     placeholder="Judul surat"
-                                    class="border border-gray-300 rounded-md px-4 py-2 w-full sm:w-52"
-                                />
+                                    class="border border-gray-300 rounded-md px-4 py-2 w-full sm:w-52" />
                             </div>
 
                             <div>
@@ -44,8 +42,7 @@
                                 <select
                                     name="status"
                                     id="status"
-                                    class="border border-gray-300 rounded-md px-4 py-2 w-full sm:w-40"
-                                >
+                                    class="border border-gray-300 rounded-md px-4 py-2 w-full sm:w-40">
                                     <option value="">Semua</option>
                                     <option value="proses" {{ request('status') == 'proses' ? 'selected' : '' }}>Menunggu</option>
                                     <option value="diterima" {{ request('status') == 'diterima' ? 'selected' : '' }}>Diterima</option>
@@ -61,15 +58,13 @@
                                     name="tanggal"
                                     id="tanggal"
                                     value="{{ request('tanggal') }}"
-                                    class="border border-gray-300 rounded-md px-4 py-2 w-full sm:w-48"
-                                />
+                                    class="border border-gray-300 rounded-md px-4 py-2 w-full sm:w-48" />
                             </div>
 
                             <div>
                                 <button
                                     type="submit"
-                                    class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 mt-1 sm:mt-6"
-                                >
+                                    class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 mt-1 sm:mt-6">
                                     Cari
                                 </button>
                             </div>
@@ -78,18 +73,18 @@
 
 
                     @if(session('success'))
-                        <div class="bg-green-100 text-green-700 p-4 rounded-md mb-4">
-                            {{ session('success') }}
-                        </div>
+                    <div class="bg-green-100 text-green-700 p-4 rounded-md mb-4">
+                        {{ session('success') }}
+                    </div>
                     @endif
 
                     <table class="min-w-full table-auto border-collapse border border-gray-300">
                         <thead>
                             <tr class="bg-gray-100 text-gray-700">
                                 <th class="border border-gray-300 px-4 py-2 text-left">No</th>
+                                <th class="border border-gray-300 px-4 py-2 text-left">Tanggal</th>
                                 <th class="border border-gray-300 px-4 py-2 text-left">Judul Surat</th>
                                 <th class="border border-gray-300 px-4 py-2 text-left">Status</th>
-                                <th class="border border-gray-300 px-4 py-2 text-left">Tanggal</th>
                                 <th class="border border-gray-300 px-4 py-2 text-left">Pengaju</th>
                             </tr>
                         </thead>
@@ -97,9 +92,9 @@
                             @forelse($pengajuanSurats as $index => $surat)
                             <tr class="hover:bg-gray-50">
                                 <td class="border border-gray-300 px-4 py-2">{{ $index + 1 }}</td>
+                                <td class="border border-gray-300 px-4 py-2">{{ $surat->created_at->format('d-m-Y') }}</td>
                                 <td class="border border-gray-300 px-4 py-2">{{ $surat->template->nama_surat }}</td>
                                 <td class="border border-gray-300 px-4 py-2">{{ ucfirst($surat->status) }}</td>
-                                <td class="border border-gray-300 px-4 py-2">{{ $surat->created_at->format('d-m-Y') }}</td>
                                 <td class="border border-gray-300 px-4 py-2">{{ $surat->user->name ?? '-' }}</td>
                             </tr>
                             @empty

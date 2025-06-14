@@ -27,9 +27,9 @@
                     </button>
 
                     @if(request('nama_surat') || request('status'))
-                        <a href="{{ route('pengajuan_surat.index') }}" class="px-6 py-2 bg-gray-400 text-white rounded-lg font-semibold hover:bg-gray-500 transition duration-300">
-                            Batal
-                        </a>
+                    <a href="{{ route('pengajuan_surat.index') }}" class="px-6 py-2 bg-gray-400 text-white rounded-lg font-semibold hover:bg-gray-500 transition duration-300">
+                        Batal
+                    </a>
                     @endif
                 </form>
             </div>
@@ -38,49 +38,53 @@
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 bg-white border-b border-gray-200">
                     @if(session('success'))
-                        <div class="bg-green-100 text-green-700 p-4 rounded-md mb-4">
-                            {{ session('success') }}
-                        </div>
+                    <div class="bg-green-100 text-green-700 p-4 rounded-md mb-4">
+                        {{ session('success') }}
+                    </div>
                     @endif
 
                     <table class="min-w-full table-auto border-collapse border border-gray-300">
                         <thead>
                             <tr class="bg-gray-100 text-gray-700">
                                 <th class="border border-gray-300 px-4 py-2 text-left">No</th>
+                                <th class="border border-gray-300 px-4 py-2 text-left">Tanggal</th>
                                 <th class="border border-gray-300 px-4 py-2 text-left">Judul Surat</th>
                                 <th class="border border-gray-300 px-4 py-2 text-left">Status</th>
-                                <th class="border border-gray-300 px-4 py-2 text-left">Tanggal</th>
+                                <th class="border border-gray-300 px-4 py-2 text-left">Catatan Penolakan</th>
                                 <th class="border border-gray-300 px-4 py-2 text-left">Aksi</th>
                             </tr>
                         </thead>
+
                         <tbody>
                             @foreach($pengajuanSurats as $index => $pengajuan)
-                                <tr class="hover:bg-gray-50">
-                                    <td class="border border-gray-300 px-4 py-2">{{ $index + 1 }}</td>
-                                    <td class="border border-gray-300 px-4 py-2">{{ $pengajuan->template->nama_surat }}</td>
-                                    <td class="border border-gray-300 px-4 py-2">{{ ucfirst($pengajuan->status) }}</td>
-                                    <td class="border border-gray-300 px-4 py-2">{{ $pengajuan->created_at->format('d-m-Y') }}</td>
-                                    <td class="border border-gray-300 px-4 py-2">
-                                        <div class="flex flex-col space-y-2">
-                                            @if($pengajuan->status == 'proses')
-                                                <a href="{{ route('pengajuan_surat.edit', $pengajuan->id) }}" class="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600">
-                                                    Edit
-                                                </a>
-                                            @endif
-                                            @if($pengajuan->status == 'diterima')
-                                                <a href="{{ route('pengajuan_surat.download', $pengajuan->id) }}" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">
-                                                    Download
-                                                </a>
-                                            @endif
-                                            @if($pengajuan->status == 'ditolak' && $pengajuan->catatan_penolakan)
-                                                <div class="bg-red-100 text-red-700 px-3 py-2 rounded-md text-sm">
-                                                    <strong>Catatan:</strong><br>
-                                                    {{ $pengajuan->catatan_penolakan }}
-                                                </div>
-                                            @endif
-                                        </div>
-                                    </td>
-                                </tr>
+                            <tr class="hover:bg-gray-50">
+                                <td class="border border-gray-300 px-4 py-2">{{ $index + 1 }}</td>
+                                <td class="border border-gray-300 px-4 py-2">{{ $pengajuan->created_at->format('d-m-Y') }}</td>
+                                <td class="border border-gray-300 px-4 py-2">{{ $pengajuan->template->nama_surat }}</td>
+                                <td class="border border-gray-300 px-4 py-2">{{ ucfirst($pengajuan->status) }}</td>
+                                <td class="border border-gray-300 px-4 py-2 text-sm text-red-700">
+                                    @if($pengajuan->status == 'ditolak' && $pengajuan->catatan_penolakan)
+                                    {{ $pengajuan->catatan_penolakan }}
+                                    @else
+                                    -
+                                    @endif
+                                </td>
+                                <td class="border border-gray-300 px-4 py-2">
+                                    <div class="flex flex-col space-y-2">
+                                        @if($pengajuan->status == 'proses')
+                                        <a href="{{ route('pengajuan_surat.edit', $pengajuan->id) }}" class="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600">
+                                            Edit
+                                        </a>
+                                        @endif
+
+                                        @if($pengajuan->status == 'diterima')
+                                        <a href="{{ route('pengajuan_surat.download', $pengajuan->id) }}" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">
+                                            Download
+                                        </a>
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
                             @endforeach
                         </tbody>
                     </table>

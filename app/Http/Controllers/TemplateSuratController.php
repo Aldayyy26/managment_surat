@@ -254,7 +254,7 @@ class TemplateSuratController extends Controller
         $template->nama_surat = $request->nama_surat;
         $template->user_type = $request->user_type;
         $template->required_placeholders = json_encode($requiredPlaceholders);
-        $template->placeholders = json_encode($allPlaceholders); // hanya simpan array key-nya
+        $template->placeholders = json_encode($allPlaceholders);
 
         $template->save();
 

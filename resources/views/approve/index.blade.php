@@ -16,8 +16,8 @@
                             <thead>
                                 <tr class="bg-gray-100 text-gray-700">
                                     <th class="border border-gray-300 px-4 py-2 text-left">No</th>
-                                    <th class="border border-gray-300 px-4 py-2 text-left">Nama Surat</th>
                                     <th class="border border-gray-300 px-4 py-2 text-left">Tanggal</th>
+                                    <th class="border border-gray-300 px-4 py-2 text-left">Nama Surat</th>
                                     <th class="border border-gray-300 px-4 py-2 text-left">Pengaju</th>
                                     <th class="border border-gray-300 px-4 py-2 text-left">Isi Surat</th>
                                     <th class="border border-gray-300 px-4 py-2 text-left">Aksi</th>
@@ -27,8 +27,8 @@
                                 @foreach ($pengajuanSurats as $index => $surat)
                                 <tr class="hover:bg-gray-50">
                                     <td class="border border-gray-300 px-4 py-2">{{ $index + 1 }}</td>
-                                    <td class="border border-gray-300 px-4 py-2">{{ $surat->template->nama_surat }}</td>
                                     <td class="border border-gray-300 px-4 py-2">{{ $surat->created_at->format('Y-m-d') }}</td>
+                                    <td class="border border-gray-300 px-4 py-2">{{ $surat->template->nama_surat }}</td>
                                     <td class="border border-gray-300 px-4 py-2">{{ $surat->user->name }}</td>
                                     <td class="border border-gray-300 px-4 py-2">
                                         {{ Str::limit(implode(', ', json_decode($surat->konten, true)), 50, '...') }}
