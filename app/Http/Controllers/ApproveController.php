@@ -55,10 +55,52 @@ class ApproveController extends Controller
         return view('approve.index', compact('pengajuanSurats'));
     }
 
+    private function getNomorSurat(PengajuanSurat $pengajuan)
+    {
+        $template = $pengajuan->template;
+        $kodeJenis = str_pad($template->no_jenis_surat, 2, '0', STR_PAD_LEFT);
+
+        // Hitung jumlah pengajuan disetujui berdasarkan kode jenis surat (bukan template_id)
+        $jumlahSurat = PengajuanSurat::whereHas('template', function ($query) use ($template) {
+            $query->where('no_jenis_surat', $template->no_jenis_surat);
+        })
+            ->where('status', 'disetujui')
+            ->count() + 1;
+
+        $nomorUrut = str_pad($jumlahSurat, 2, '0', STR_PAD_LEFT);
+
+        $bagianTetap = 'TI.PHB';
+
+        $bulanRomawi = [
+            1 => 'I',
+            2 => 'II',
+            3 => 'III',
+            4 => 'IV',
+            5 => 'V',
+            6 => 'VI',
+            7 => 'VII',
+            8 => 'VIII',
+            9 => 'IX',
+            10 => 'X',
+            11 => 'XI',
+            12 => 'XII'
+        ];
+
+        $bulan = $bulanRomawi[date('n')];
+        $tahun = date('Y');
+
+        return "{$nomorUrut}.{$kodeJenis}/{$bagianTetap}/{$bulan}/{$tahun}";
+    }
+
     public function approve(Request $request, PengajuanSurat $pengajuanSurat)
     {
         try {
             $ttdType = $request->input('ttd_type'); // 'basah' atau 'digital'
+
+            // Cek dan generate nomor_surat jika belum ada
+            if (!$pengajuanSurat->nomor_surat) {
+                $pengajuanSurat->nomor_surat = $this->getNomorSurat($pengajuanSurat);
+            }
 
             if ($ttdType === 'digital') {
                 $signaturePath = SignatureController::getSignaturePath();
@@ -67,18 +109,15 @@ class ApproveController extends Controller
                     return response()->json(['message' => 'Tanda tangan kaprodi belum disimpan. Silakan buat terlebih dahulu.'], 400);
                 }
 
-                $pengajuanSurat->update([
-                    'status' => 'diterima',
-                    'ttd_type' => 'digital',
-                    'signature' => $signaturePath,
-                ]);
+                $pengajuanSurat->ttd_type = 'digital';
+                $pengajuanSurat->signature = $signaturePath;
             } else {
-                $pengajuanSurat->update([
-                    'status' => 'diterima',
-                    'ttd_type' => 'basah',
-                    'signature' => null,
-                ]);
+                $pengajuanSurat->ttd_type = 'basah';
+                $pengajuanSurat->signature = null;
             }
+
+            $pengajuanSurat->status = 'diterima';
+            $pengajuanSurat->save();
 
             // Kirim WA notifikasi
             $user = $pengajuanSurat->user;
@@ -92,7 +131,6 @@ class ApproveController extends Controller
             return response()->json(['message' => 'Terjadi kesalahan: ' . $e->getMessage()], 500);
         }
     }
-
 
     public function reject(Request $request, PengajuanSurat $pengajuanSurat)
     {
