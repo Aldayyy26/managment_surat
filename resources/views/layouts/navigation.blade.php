@@ -106,6 +106,48 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+
+            @can('manage surat')
+            <x-responsive-nav-link :href="route('surats.index')" :active="request()->routeIs('surats.index')">
+                {{ __('Manage Surat') }}
+            </x-responsive-nav-link>
+            @endcan
+
+            @can('manage_users')
+            <x-responsive-nav-link :href="route('users.index')" :active="request()->routeIs('users.index')">
+                {{ __('Pengguna') }}
+            </x-responsive-nav-link>
+            @endcan
+
+            @can('manage history surat')
+            <x-responsive-nav-link :href="route('pengajuan_surat.index')" :active="request()->routeIs('pengajuan_surat.index')">
+                {{ __('Histori Surat') }}
+            </x-responsive-nav-link>
+            @endcan
+
+            @can('manage report')
+            <x-responsive-nav-link :href="route('admin.report')" :active="request()->routeIs('admin.report')">
+                {{ __('Laporan Surat') }}
+            </x-responsive-nav-link>
+            @endcan
+
+            @can('manage approval surat')
+            <x-responsive-nav-link :href="route('approve.index')" :active="request()->routeIs('approve.index')">
+                {{ __('Setujui Surat') }}
+            </x-responsive-nav-link>
+            @endcan
+
+            @can('manage stempel')
+            <x-responsive-nav-link :href="route('stempels.index')" :active="request()->routeIs('stempels.index')">
+                {{ __('Manage Stempel') }}
+            </x-responsive-nav-link>
+            @endcan
+
+            @can('manage ttd')
+            <x-responsive-nav-link :href="route('signature.index')" :active="request()->routeIs('signature.index')">
+                {{ __('TTD Kaprodi') }}
+            </x-responsive-nav-link>
+            @endcan
         </div>
 
         <!-- Responsive Settings Options -->
