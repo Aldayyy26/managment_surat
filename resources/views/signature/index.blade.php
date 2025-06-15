@@ -5,6 +5,9 @@
         </h2>
     </x-slot>
 
+    <!-- SweetAlert -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <div class="py-12">
         <div class="max-w-xl mx-auto sm:px-6 lg:px-8 bg-white p-6 rounded-lg shadow-md text-center">
             @if ($signatureUrl)
@@ -30,25 +33,57 @@
             deleteForm.addEventListener('submit', function (e) {
                 e.preventDefault();
 
-                if (!confirm("Yakin ingin menghapus tanda tangan?")) return;
-
-                fetch("{{ route('signature.destroy') }}", {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Accept': 'application/json',
-                    },
-                })
-                .then(res => res.json())
-                .then(data => {
-                    alert(data.message);
-                    location.reload();
-                })
-                .catch(err => {
-                    alert("Gagal menghapus tanda tangan.");
-                    console.error(err);
+                Swal.fire({
+                    title: 'Yakin ingin menghapus?',
+                    text: "Tanda tangan yang dihapus tidak bisa dikembalikan.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Ya, hapus!',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        fetch("{{ route('signature.destroy') }}", {
+                            method: 'DELETE',
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Accept': 'application/json',
+                            },
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil',
+                                text: data.message,
+                                timer: 1500,
+                                showConfirmButton: false
+                            }).then(() => {
+                                location.reload();
+                            });
+                        })
+                        .catch(err => {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal',
+                                text: 'Gagal menghapus tanda tangan.',
+                            });
+                            console.error(err);
+                        });
+                    }
                 });
             });
         }
+
+        @if(session('success'))
+        Swal.fire({
+            icon: 'success',
+            title: 'Berhasil',
+            text: "{{ session('success') }}",
+            timer: 2000,
+            showConfirmButton: false
+        });
+        @endif
     </script>
 </x-app-layout>

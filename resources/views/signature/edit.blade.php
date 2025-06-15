@@ -5,15 +5,17 @@
         </h2>
     </x-slot>
 
+    <!-- SweetAlert -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <style>
         #signatureCanvas {
-            touch-action: none; /* Agar bisa ditulis di layar HP */
+            touch-action: none; /* Bisa ditulis di layar sentuh */
         }
     </style>
 
     <div class="py-12">
         <div class="max-w-xl mx-auto sm:px-6 lg:px-8 bg-white p-6 rounded-lg shadow-md">
-
             {{-- Tampilkan tanda tangan lama jika ada --}}
             @php
                 $existingSignature = \Illuminate\Support\Facades\Storage::disk('public')->exists(App\Http\Controllers\SignatureController::getSignaturePath());
@@ -22,7 +24,8 @@
             @if($existingSignature)
                 <div class="mb-4 text-center">
                     <p class="text-gray-700 mb-2">Tanda tangan sebelumnya:</p>
-                    <img src="{{ asset('storage/' . App\Http\Controllers\SignatureController::getSignaturePath()) }}" alt="Tanda tangan lama" class="border border-gray-300 mx-auto mb-4">
+                    <img src="{{ asset('storage/' . App\Http\Controllers\SignatureController::getSignaturePath()) }}"
+                         alt="Tanda tangan lama" class="border border-gray-300 mx-auto mb-4 max-h-40">
                 </div>
             @endif
 
@@ -59,7 +62,11 @@
 
         function saveSignature() {
             if (signaturePad.isEmpty()) {
-                alert("Tanda tangan tidak boleh kosong!");
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Tanda tangan kosong',
+                    text: 'Silakan buat tanda tangan terlebih dahulu.',
+                });
                 return;
             }
 
@@ -75,11 +82,22 @@
             })
             .then(res => res.json())
             .then(data => {
-                alert(data.message);
-                window.location.href = "{{ route('signature.index') }}";
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: data.message,
+                    timer: 2000,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location.href = "{{ route('signature.index') }}";
+                });
             })
             .catch(err => {
-                alert("Gagal menyimpan tanda tangan.");
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal menyimpan tanda tangan!',
+                    text: 'Silakan coba lagi.',
+                });
                 console.error(err);
             });
         }

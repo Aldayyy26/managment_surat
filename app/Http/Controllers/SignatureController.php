@@ -52,9 +52,10 @@ class SignatureController extends Controller
         return response()->json(['message' => 'Tanda tangan berhasil disimpan.']);
     }
 
+
+
     public static function getSignaturePath()
     {
         return 'signatures/signature_kaprodi.png';
     }
 }
-

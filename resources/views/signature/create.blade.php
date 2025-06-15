@@ -5,6 +5,9 @@
         </h2>
     </x-slot>
 
+    <!-- SweetAlert CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <style>
         #signatureCanvas {
             touch-action: none; /* Penting untuk support sentuhan di HP */
@@ -45,7 +48,11 @@
 
         function saveSignature() {
             if (signaturePad.isEmpty()) {
-                alert("Tanda tangan tidak boleh kosong!");
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Tanda tangan kosong',
+                    text: 'Silakan buat tanda tangan terlebih dahulu.',
+                });
                 return;
             }
 
@@ -61,10 +68,22 @@
             })
             .then(res => res.json())
             .then(data => {
-                alert(data.message);
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: data.message,
+                    timer: 2000,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location.href = "{{ route('signature.index') }}";
+                });
             })
             .catch(err => {
-                alert("Gagal menyimpan tanda tangan.");
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal!',
+                    text: 'Terjadi kesalahan saat menyimpan tanda tangan.'
+                });
                 console.error(err);
             });
         }
