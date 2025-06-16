@@ -11,15 +11,16 @@ use App\Http\Controllers\StempelController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\KopSuratController;
 use App\Http\Controllers\SignatureController;
+use App\Http\Controllers\DashboardController;
 
 
 Route::get('/', [FrontController::class, 'index'])->name('frontend.index');
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 });
+
+
 Route::post('/users/import', [UserController::class, 'import'])->name('users.import');
 Route::get('/admin/report', [ReportController::class, 'history'])->name('admin.report');
 Route::middleware(['auth'])->group(function () {

@@ -16,6 +16,8 @@ use PhpOffice\PhpWord\TemplateProcessor;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Response;
 use Mpdf\Mpdf;
+use Intervention\Image\Facades\Image;
+use Intervention\Image\ImageManager;
 
 
 class PengajuanSuratController extends Controller
@@ -235,11 +237,11 @@ class PengajuanSuratController extends Controller
         return [
             'nama_kaprodi' => $kaprodi->name ?? '-',
             'nipy_kaprodi' => $kaprodi->nip ?? '-',
-            'ttd_kaprodi' => asset('storage/signatures/signature_kaprodi.png'),
-            'stempel' => asset('storage/stempels/stempel_kaprodi.png'),
             'tanggalsekarang' => now()->format('d F Y'),
         ];
     }
+
+
 
     public function download($id)
     {
@@ -251,19 +253,16 @@ class PengajuanSuratController extends Controller
             return back()->with('error', 'File template tidak ditemukan.');
         }
 
-        $templateProcessor = new TemplateProcessor($filePath);
+        $templateProcessor = new \PhpOffice\PhpWord\TemplateProcessor($filePath);
 
         $konten = json_decode($pengajuan->konten, true) ?? [];
-        $placeholders = json_decode($template->required_placeholders, true) ?? [];
-
         $systemData = $this->getKaprodiData();
-        $nomorSurat = $this->getNomorSurat($pengajuan);
-        $systemData['nomor_surat'] = $nomorSurat;
+        $systemData['nomor_surat'] = $this->getNomorSurat($pengajuan);
 
         $allData = array_merge($konten, $systemData);
 
         foreach ($allData as $key => $value) {
-            if (in_array($key, ['ttd_kaprodi', 'stempel'])) continue;
+            if (in_array($key, ['ttd_kaprodi', 'stempel', 'ttdstempelbasah'])) continue;
 
             if (!is_string($value) && !is_numeric($value)) {
                 $value = json_encode($value);
@@ -272,35 +271,53 @@ class PengajuanSuratController extends Controller
             $templateProcessor->setValue($key, $value ?? '');
         }
 
-        if ($pengajuan->signature !== null) {
-            $signaturePath = storage_path('app/public/' . $pengajuan->signature);
-            if (file_exists($signaturePath)) {
-                $templateProcessor->setImageValue('ttd_kaprodi', [
-                    'path' => $signaturePath,
-                    'width' => 150,
-                    'height' => 80,
-                ]);
-
-                $templateProcessor->setImageValue('stempel', [
-                    'path' => storage_path('app/public/stempels/stempel_kaprodi.png'),
-                    'width' => 150,
-                    'height' => 80,
-                ]);
-            } else {
-                $templateProcessor->setValue('ttd_kaprodi', '');
-                $templateProcessor->setValue('stempel', '');
-            }
-        } else {
-            $templateProcessor->setValue('ttd_kaprodi', '');
-            $templateProcessor->setValue('stempel', '');
-        }
-
-        $filename = Str::slug($template->nama_surat) . '-' . time();
+        $filename = \Illuminate\Support\Str::slug($template->nama_surat) . '-' . time();
         $outputDir = storage_path('app/public/generated');
 
         if (!file_exists($outputDir)) {
             mkdir($outputDir, 0755, true);
         }
+
+        $signaturePath = storage_path('app/public/' . $pengajuan->signature);
+        $stempelPath = storage_path('app/public/stempels/stempel_kaprodi.png');
+
+        if (file_exists($signaturePath) && file_exists($stempelPath)) {
+            $stempel   = imagecreatefrompng($stempelPath);
+            $signature = imagecreatefrompng($signaturePath);
+
+            imagesavealpha($stempel, true);
+            imagealphablending($stempel, true);
+
+            imagesavealpha($signature, true);
+            imagealphablending($signature, true);
+
+            $width = 200;
+            $height = 100;
+            $combined = imagecreatetruecolor($width, $height);
+            imagesavealpha($combined, true);
+            $transparent = imagecolorallocatealpha($combined, 0, 0, 0, 127);
+            imagefill($combined, 0, 0, $transparent);
+
+            imagecopy($combined, $signature, 0, 0, 0, 0, imagesx($signature), imagesy($signature));
+
+            imagecopy($combined, $stempel, 20, 20, 0, 0, imagesx($stempel), imagesy($stempel));
+
+            $combinedPath = $outputDir . '/' . $filename . '-combined.png';
+            imagepng($combined, $combinedPath);
+
+            imagedestroy($combined);
+            imagedestroy($stempel);
+            imagedestroy($signature);
+
+            $templateProcessor->setImageValue('ttdstempelbasah', [
+                'path' => $combinedPath,
+                'width' => 150,
+                'height' => 80,
+            ]);
+        } else {
+            $templateProcessor->setValue('ttdstempelbasah', '');
+        }
+
 
         $docxPath = $outputDir . '/' . $filename . '.docx';
         $pdfPath  = $outputDir . '/' . $filename . '.pdf';
@@ -309,8 +326,6 @@ class PengajuanSuratController extends Controller
 
         // Path LibreOffice di Windows
         $libreOfficePath = '"C:\Program Files\LibreOffice\program\soffice.exe"';
-
-        // Jalankan LibreOffice convert
         $command = $libreOfficePath . ' --headless --convert-to pdf --outdir "' . $outputDir . '" "' . $docxPath . '"';
         exec($command, $output, $resultCode);
 
@@ -318,12 +333,10 @@ class PengajuanSuratController extends Controller
             return back()->with('error', 'Gagal mengonversi file ke PDF.');
         }
 
-        // Optional: hapus file .docx kalau tidak perlu
-        unlink($docxPath);
+        unlink($docxPath); // Hapus file .docx jika tidak dibutuhkan
 
         return response()->download($pdfPath)->deleteFileAfterSend(true);
     }
-
 
 
 

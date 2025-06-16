@@ -123,13 +123,13 @@
                 Untuk menghindari antrian panjang dan mempercepat waktu anda.
               </p>
 
-              <div class="hero-buttons">
+              <!-- <div class="hero-buttons">
                 <a href="#about" class="btn btn-primary me-0 me-sm-2 mx-1">Mulai Sekarang</a>
                 <a href="https://www.youtube.com/watch?v=Y7f98aduVJ8" class="btn btn-link mt-2 mt-sm-0 glightbox">
                   <i class="bi bi-play-circle me-1"></i>
                   Video Tutorial
                 </a>
-              </div>
+              </div> -->
             </div>
           </div>
 
