@@ -8,6 +8,13 @@
     <div class="py-8">
         <div class="max-w-xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white p-6 rounded-lg shadow-md">
+                {{-- Flash Message --}}
+                @if (session('error'))
+                    <div class="bg-red-100 text-red-700 px-4 py-2 rounded mb-4">
+                        {{ session('error') }}
+                    </div>
+                @endif
+
                 <form method="POST" action="{{ route('stempels.store') }}" enctype="multipart/form-data">
                     @csrf
 

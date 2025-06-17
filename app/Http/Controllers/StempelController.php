@@ -21,13 +21,15 @@ class StempelController extends Controller
 
     public function store(Request $request)
     {
+        // Cegah penambahan jika sudah ada satu stempel
+        if (Stempel::count() >= 1) {
+            return redirect()->route('stempels.index')->with('error', 'Hanya boleh ada satu stempel.');
+        }
+
         $request->validate([
             'nama' => 'required|string|max:255',
             'gambar' => 'required|image|mimes:jpg,jpeg,png|max:2048',
         ]);
-
-        // Hapus file gambar lama
-        Storage::disk('public')->delete('stempels/stempel_kaprodi.png');
 
         $file = $request->file('gambar');
         $filename = 'stempel_kaprodi.png';
@@ -35,9 +37,6 @@ class StempelController extends Controller
         $storagePath = storage_path('app/public/stempels/' . $filename);
 
         $this->removeWhiteBackgroundAndSaveAsPng($tmpPath, $storagePath);
-
-        // Opsional: hanya simpan satu data stempel di database
-        Stempel::truncate();
 
         Stempel::create([
             'nama' => $request->nama,
@@ -132,7 +131,6 @@ class StempelController extends Controller
         imagedestroy($newImg);
     }
 
-    // Static path helper jika dibutuhkan
     public static function getStempelPath()
     {
         return 'stempels/stempel_kaprodi.png';
