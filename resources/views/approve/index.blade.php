@@ -188,7 +188,7 @@
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                         },
                         body: JSON.stringify({
-                            alasan: result.value
+                            catatan: result.value
                         })
                     })
                     .then(res => res.json())
