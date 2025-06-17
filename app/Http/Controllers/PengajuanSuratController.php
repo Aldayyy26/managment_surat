@@ -192,6 +192,16 @@ class PengajuanSuratController extends Controller
         return redirect()->route('pengajuan_surat.index')->with('success', 'Pengajuan surat berhasil diajukan dan notifikasi terkirim.');
     }
 
+    private function getKaprodiData()
+    {
+        $kaprodi = User::role('kepalaprodi')->first();
+
+        return [
+            'nama_kaprodi' => $kaprodi->name ?? '-',
+            'nipy_kaprodi' => $kaprodi->nip ?? '-',
+            'tanggalsekarang' => \Carbon\Carbon::now()->translatedFormat('d F Y'),
+        ];
+    }
 
     private function getNomorSurat(PengajuanSurat $pengajuan)
     {
@@ -200,9 +210,12 @@ class PengajuanSuratController extends Controller
 
         $jumlahSurat = PengajuanSurat::whereHas('template', function ($query) use ($template) {
             $query->where('no_jenis_surat', $template->no_jenis_surat);
-        })->where('status', 'diterima')->count() + 1;
+        })
+            ->where('status', 'diterima')
+            ->count() + 1;
 
         $nomorUrut = str_pad($jumlahSurat, 2, '0', STR_PAD_LEFT);
+
         $bagianTetap = 'TI.PHB';
 
         $bulanRomawi = [
@@ -226,16 +239,6 @@ class PengajuanSuratController extends Controller
         return "{$nomorUrut}.{$kodeJenis}/{$bagianTetap}/{$bulan}/{$tahun}";
     }
 
-    private function getKaprodiData()
-    {
-        $kaprodi = User::role('kepalaprodi')->first();
-
-        return [
-            'nama_kaprodi' => $kaprodi->name ?? '-',
-            'nipy_kaprodi' => $kaprodi->nip ?? '-',
-            'tanggalsekarang' => \Carbon\Carbon::now()->translatedFormat('d F Y'),
-        ];
-    }
 
 
     public function download($id)
@@ -252,7 +255,7 @@ class PengajuanSuratController extends Controller
 
         $konten = json_decode($pengajuan->konten, true) ?? [];
         $systemData = $this->getKaprodiData();
-        $systemData['nomor_surat'] = $this->getNomorSurat($pengajuan);
+        $systemData['nomor_surat'] = $pengajuan->nomor_surat ?? $this->getNomorSurat($pengajuan);
 
         $allData = array_merge($konten, $systemData);
 
@@ -306,7 +309,7 @@ class PengajuanSuratController extends Controller
             imagecopyresampled($signatureResized, $signature, 0, 0, 0, 0, 180, 100, imagesx($signature), imagesy($signature));
 
             // Tempelkan stempel (bawah) dan tanda tangan (atas)
-            imagecopy($combined, $stempelResized, 65, 50, 0, 0, 120, 60); 
+            imagecopy($combined, $stempelResized, 65, 50, 0, 0, 120, 60);
             imagecopy($combined, $signatureResized, 35, 0, 0, 0, 180, 100);
 
             $combinedPath = $outputDir . '/' . $filename . '-combined.png';

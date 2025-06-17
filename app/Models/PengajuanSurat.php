@@ -30,4 +30,6 @@ class PengajuanSurat extends Model
     {
         return $this->belongsTo(TemplateSurat::class); 
     }
+
+    
 }
