@@ -187,6 +187,11 @@
                 showCancelButton: true,
                 confirmButtonText: 'Kirim Penolakan',
                 cancelButtonText: 'Batal',
+                customClass: {
+                    confirmButton: 'bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded',
+                    cancelButton: 'bg-gray-300 hover:bg-gray-400 text-black px-4 py-2 rounded ml-2'
+                },
+                buttonsStyling: false,
                 inputValidator: (value) => {
                     if (!value) {
                         return 'Alasan penolakan wajib diisi!';
