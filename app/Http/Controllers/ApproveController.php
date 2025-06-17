@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\SignatureController;
 use Illuminate\Support\Facades\Storage;
+use App\Models\Stempel;
 
 class ApproveController extends Controller
 {
@@ -60,11 +61,10 @@ class ApproveController extends Controller
         $template = $pengajuan->template;
         $kodeJenis = str_pad($template->no_jenis_surat, 2, '0', STR_PAD_LEFT);
 
-        // Hitung jumlah pengajuan disetujui berdasarkan kode jenis surat (bukan template_id)
         $jumlahSurat = PengajuanSurat::whereHas('template', function ($query) use ($template) {
             $query->where('no_jenis_surat', $template->no_jenis_surat);
         })
-            ->where('status', 'disetujui')
+            ->where('status', 'diterima')
             ->count() + 1;
 
         $nomorUrut = str_pad($jumlahSurat, 2, '0', STR_PAD_LEFT);
@@ -103,17 +103,24 @@ class ApproveController extends Controller
             }
 
             if ($ttdType === 'digital') {
+                // Ambil tanda tangan
                 $signaturePath = SignatureController::getSignaturePath();
-
                 if (!Storage::disk('public')->exists($signaturePath)) {
                     return response()->json(['message' => 'Tanda tangan kaprodi belum disimpan. Silakan buat terlebih dahulu.'], 400);
                 }
 
-                $pengajuanSurat->ttd_type = 'digital';
+                // Ambil stempel dari model
+                $stempel = Stempel::first(); // asumsinya cuma satu data stempel aktif
+                if (!$stempel || !Storage::disk('public')->exists($stempel->gambar)) {
+                    return response()->json(['message' => 'Stempel belum disimpan di sistem.'], 400);
+                }
+
                 $pengajuanSurat->signature = $signaturePath;
+                $pengajuanSurat->stempel = $stempel->gambar;
             } else {
-                $pengajuanSurat->ttd_type = 'basah';
+                // Jika tanda tangan basah, kosongin dua-duanya
                 $pengajuanSurat->signature = null;
+                $pengajuanSurat->stempel = null;
             }
 
             $pengajuanSurat->status = 'diterima';
@@ -131,6 +138,7 @@ class ApproveController extends Controller
             return response()->json(['message' => 'Terjadi kesalahan: ' . $e->getMessage()], 500);
         }
     }
+
 
     public function reject(Request $request, PengajuanSurat $pengajuanSurat)
     {

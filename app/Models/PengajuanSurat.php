@@ -12,7 +12,7 @@ class PengajuanSurat extends Model
     protected $table = 'pengajuan_surats';
 
     protected $fillable = [
-        'user_id', 'template_id', 'konten', 'status', 'signature', 'catatan_penolakan'
+        'user_id', 'template_id', 'konten', 'status', 'signature', 'catatan_penolakan', 'nomor_surat',
     ];
     
 

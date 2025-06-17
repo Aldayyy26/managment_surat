@@ -198,15 +198,11 @@ class PengajuanSuratController extends Controller
         $template = $pengajuan->template;
         $kodeJenis = str_pad($template->no_jenis_surat, 2, '0', STR_PAD_LEFT);
 
-        // Hitung jumlah pengajuan disetujui berdasarkan kode jenis surat (bukan template_id)
         $jumlahSurat = PengajuanSurat::whereHas('template', function ($query) use ($template) {
             $query->where('no_jenis_surat', $template->no_jenis_surat);
-        })
-            ->where('status', 'disetujui')
-            ->count() + 1;
+        })->where('status', 'diterima')->count() + 1;
 
         $nomorUrut = str_pad($jumlahSurat, 2, '0', STR_PAD_LEFT);
-
         $bagianTetap = 'TI.PHB';
 
         $bulanRomawi = [
@@ -237,10 +233,9 @@ class PengajuanSuratController extends Controller
         return [
             'nama_kaprodi' => $kaprodi->name ?? '-',
             'nipy_kaprodi' => $kaprodi->nip ?? '-',
-            'tanggalsekarang' => now()->format('d F Y'),
+            'tanggalsekarang' => \Carbon\Carbon::now()->translatedFormat('d F Y'),
         ];
     }
-
 
 
     public function download($id)
@@ -281,26 +276,38 @@ class PengajuanSuratController extends Controller
         $signaturePath = storage_path('app/public/' . $pengajuan->signature);
         $stempelPath = storage_path('app/public/stempels/stempel_kaprodi.png');
 
-        if (file_exists($signaturePath) && file_exists($stempelPath)) {
-            $stempel   = imagecreatefrompng($stempelPath);
+        if (!empty($pengajuan->signature) && file_exists($signaturePath) && file_exists($stempelPath)) {
+            $stempel = imagecreatefrompng($stempelPath);
             $signature = imagecreatefrompng($signaturePath);
 
             imagesavealpha($stempel, true);
             imagealphablending($stempel, true);
-
             imagesavealpha($signature, true);
             imagealphablending($signature, true);
 
-            $width = 200;
-            $height = 100;
-            $combined = imagecreatetruecolor($width, $height);
+            // Ukuran canvas gabungan
+            $canvasWidth = 250;
+            $canvasHeight = 130;
+            $combined = imagecreatetruecolor($canvasWidth, $canvasHeight);
             imagesavealpha($combined, true);
             $transparent = imagecolorallocatealpha($combined, 0, 0, 0, 127);
             imagefill($combined, 0, 0, $transparent);
 
-            imagecopy($combined, $signature, 0, 0, 0, 0, imagesx($signature), imagesy($signature));
+            // Resize stempel
+            $stempelResized = imagecreatetruecolor(180, 100);
+            imagesavealpha($stempelResized, true);
+            imagefill($stempelResized, 0, 0, $transparent);
+            imagecopyresampled($stempelResized, $stempel, 0, 0, 0, 0, 120, 60, imagesx($stempel), imagesy($stempel));
 
-            imagecopy($combined, $stempel, 20, 20, 0, 0, imagesx($stempel), imagesy($stempel));
+            // Resize tanda tangan (lebih besar)
+            $signatureResized = imagecreatetruecolor(220, 140);
+            imagesavealpha($signatureResized, true);
+            imagefill($signatureResized, 0, 0, $transparent);
+            imagecopyresampled($signatureResized, $signature, 0, 0, 0, 0, 180, 100, imagesx($signature), imagesy($signature));
+
+            // Tempelkan stempel (bawah) dan tanda tangan (atas)
+            imagecopy($combined, $stempelResized, 65, 50, 0, 0, 120, 60); 
+            imagecopy($combined, $signatureResized, 35, 0, 0, 0, 180, 100);
 
             $combinedPath = $outputDir . '/' . $filename . '-combined.png';
             imagepng($combined, $combinedPath);
@@ -308,23 +315,23 @@ class PengajuanSuratController extends Controller
             imagedestroy($combined);
             imagedestroy($stempel);
             imagedestroy($signature);
+            imagedestroy($stempelResized);
+            imagedestroy($signatureResized);
 
             $templateProcessor->setImageValue('ttdstempelbasah', [
                 'path' => $combinedPath,
-                'width' => 150,
-                'height' => 80,
+                'width' => 180,
+                'height' => 100,
             ]);
         } else {
             $templateProcessor->setValue('ttdstempelbasah', '');
         }
-
 
         $docxPath = $outputDir . '/' . $filename . '.docx';
         $pdfPath  = $outputDir . '/' . $filename . '.pdf';
 
         $templateProcessor->saveAs($docxPath);
 
-        // Path LibreOffice di Windows
         $libreOfficePath = '"C:\Program Files\LibreOffice\program\soffice.exe"';
         $command = $libreOfficePath . ' --headless --convert-to pdf --outdir "' . $outputDir . '" "' . $docxPath . '"';
         exec($command, $output, $resultCode);
@@ -333,7 +340,7 @@ class PengajuanSuratController extends Controller
             return back()->with('error', 'Gagal mengonversi file ke PDF.');
         }
 
-        unlink($docxPath); // Hapus file .docx jika tidak dibutuhkan
+        unlink($docxPath);
 
         return response()->download($pdfPath)->deleteFileAfterSend(true);
     }
