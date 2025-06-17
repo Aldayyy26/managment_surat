@@ -75,7 +75,7 @@ class TemplateSuratController extends Controller
             ->with('success', 'File berhasil diupload, silakan pilih placeholder yang wajib diisi.');
     }
 
-    
+
     public function selectPlaceholders(Request $request, $id)
     {
         $template = TemplateSurat::findOrFail($id);
@@ -94,8 +94,8 @@ class TemplateSuratController extends Controller
                 'nullable' => isset($config['nullable']) && $config['nullable'] == 1,
                 'label' => trim($config['label'] ?? ''),
                 'type' => $config['type'] ?? 'text',
-                'options' => isset($config['options']) 
-                    ? array_map('trim', explode(',', $config['options'])) 
+                'options' => isset($config['options'])
+                    ? array_map('trim', explode(',', $config['options']))
                     : [],
             ];
         }
@@ -188,30 +188,42 @@ class TemplateSuratController extends Controller
     {
         $template = TemplateSurat::findOrFail($id);
 
-        // Ambil placeholders & required_placeholders
+        // Ambil semua placeholders dari file Word (asli)
         $placeholders = is_array($template->placeholders)
             ? $template->placeholders
             : json_decode($template->placeholders, true) ?? [];
 
+        // Ambil placeholder yang sudah ditandai bisa diajukan user
         $requiredPlaceholders = is_array($template->required_placeholders)
             ? $template->required_placeholders
             : json_decode($template->required_placeholders, true) ?? [];
 
-        // Trim semua nilai dalam array placeholders
-        $placeholders = array_map('trim', $placeholders);
+        // Pastikan semua key dibersihkan dan gabungkan info "can_input"
+        $existingPlaceholders = [];
 
-        // Trim key dari requiredPlaceholders
-        $requiredPlaceholdersTrimmed = [];
-        foreach ($requiredPlaceholders as $key => $value) {
-            $requiredPlaceholdersTrimmed[trim($key)] = $value;
+        foreach ($placeholders as $key) {
+            $key = trim($key);
+
+            // Ambil konfigurasi lama jika ada
+            $config = $requiredPlaceholders[$key] ?? [];
+
+            $existingPlaceholders[$key] = [
+                'label' => $config['label'] ?? '',
+                'type' => $config['type'] ?? 'text',
+                'options' => $config['options'] ?? [],
+                'nullable' => $config['nullable'] ?? false,
+                'required' => $config['required'] ?? false,
+                'can_input' => isset($requiredPlaceholders[$key]) ? true : false, // hanya true jika sebelumnya dipilih
+            ];
         }
 
         return view('surats.edit', [
             'template' => $template,
             'placeholders' => $placeholders,
-            'existingPlaceholders' => $requiredPlaceholdersTrimmed,
+            'existingPlaceholders' => $existingPlaceholders,
         ]);
     }
+
 
     public function update(Request $request, $id)
     {
@@ -234,8 +246,8 @@ class TemplateSuratController extends Controller
             $placeholderData = [
                 'label' => trim($config['label'] ?? ''),
                 'type' => $config['type'] ?? 'text',
-                'options' => isset($config['options']) 
-                    ? array_map('trim', explode(',', $config['options'])) 
+                'options' => isset($config['options'])
+                    ? array_map('trim', explode(',', $config['options']))
                     : [],
             ];
 
@@ -258,7 +270,7 @@ class TemplateSuratController extends Controller
 
         $template->save();
 
-        return redirect()->route('surats.edit', $template->id)
+        return redirect()->route('surats.index', $template->id)
             ->with('success', 'Template berhasil diperbarui.');
     }
 

@@ -40,15 +40,15 @@
                 <div class="form-content">
                     <div class="form-items">
                         <h3>Login untuk membuat surat.</h3>
-                        <p>Akses ke seluruh layanan akademik kampus dengan mudah dan cepat.</p>
+                        <p>Akses pembuatan surat dengan cepat dan mudah tanpa antrian.</p>
                         @if ($errors->has('email') || $errors->has('password'))
                         <div class="alert alert-danger">
-                            <strong>Gagal login!</strong> Username atau password yang Anda masukkan salah.
+                            <strong>Gagal login!</strong> Email atau password yang Anda masukkan salah.
                         </div>
                         @endif
                         <form method="POST" action="{{ route('login') }}">
                             @csrf
-                            <input class="form-control" type="email" name="email" placeholder="Username" required>
+                            <input class="form-control" type="email" name="email" placeholder="Email" required>
                             <input class="form-control" type="password" name="password" placeholder="Password" required>
                             <div class="form-button">
                                 <button id="submit" type="submit" class="ibtn">Login</button> <a href="#">Lupa password?</a>

@@ -3,9 +3,17 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Ajukan Surat</title>
+    <title>SPETI</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('img/favicon/apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('img/favicon/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('img/favicon/favicon-16x16.png') }}">
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('img/favicon/android-chrome-192x192.png') }}">
+    <link rel="icon" type="image/png" sizes="512x512" href="{{ asset('img/favicon/android-chrome-512x512.png') }}">
+    <link rel="shortcut icon" href="{{ asset('img/favicon/favicon.ico') }}">
+
 </head>
 <body class="bg-gray-100 text-gray-800">
 
@@ -16,7 +24,7 @@
             <div class="flex">
                 <!-- Logo -->
                 <div class="flex-shrink-0 flex items-center">
-                    <a href="{{ url('/') }}" class="text-lg">SPETI</a>
+                    <a href="{{ url('/') }}" class="text-lg">HOME</a>
                 </div>
             </div>
             <!-- User Dropdown -->
@@ -46,7 +54,7 @@
 <!-- Page Title -->
 <header class="bg-white shadow">
     <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <h2 class="text-xl font-semibold leading-tight">Ajukan Surat</h2>
+        <h2 class="text-xl font-semibold leading-tight">Ajukan Surat Sesuai Kebutuhanmulogij</h2>
     </div>
 </header>
 
@@ -63,9 +71,9 @@
             @csrf
 
             <div class="mb-4">
-                <label for="templateSurat" class="block mb-2 font-medium text-gray-700">Pilih Template Surat</label>
+                <label for="templateSurat" class="block mb-2 font-medium text-gray-700">Pilih Surat</label>
                 <select name="template_id" id="templateSurat" class="w-full border rounded px-3 py-2" required>
-                    <option value="">-- Pilih Template --</option>
+                    <option value="">-- Pilih surat yang diajukan --</option>
                     @foreach($templates as $template)
                         <option value="{{ $template->id }}">{{ $template->nama_surat }}</option>
                     @endforeach

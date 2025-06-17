@@ -9,9 +9,16 @@
         <div class="max-w-6xl mx-auto sm:px-6 lg:px-8">
 
             @if(session('success'))
-                <div class="mb-4 text-green-600">
-                    {{ session('success') }}
-                </div>
+                <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+                <script>
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: '{{ session('success') }}',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                </script>
             @endif
 
             <div class="mb-4 flex justify-between items-center">
@@ -37,15 +44,12 @@
                 <tbody>
                     @forelse($surats as $index => $surat)
                         @php
-                            // Pastikan placeholders berupa array atau kosong
                             $placeholders = [];
                             if (!empty($surat->placeholders)) {
-                                // Jika string JSON, decode
                                 if (is_string($surat->placeholders)) {
                                     $decoded = json_decode($surat->placeholders, true);
                                     $placeholders = is_array($decoded) ? $decoded : [];
                                 } elseif (is_array($surat->placeholders) || $surat->placeholders instanceof \Countable) {
-                                    // Jika sudah array atau Collection
                                     $placeholders = $surat->placeholders;
                                 }
                             }
@@ -60,10 +64,10 @@
                             <td class="border border-gray-300 px-4 py-2 text-center">
                                 <a href="{{ route('surats.edit', $surat->id) }}" class="text-blue-600 hover:underline mr-2">Edit</a>
 
-                                <form action="{{ route('surats.destroy', $surat->id) }}" method="POST" class="inline" onsubmit="return confirm('Yakin ingin hapus template ini?');">
+                                <form id="delete-form-{{ $surat->id }}" action="{{ route('surats.destroy', $surat->id) }}" method="POST" class="inline">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="text-red-600 hover:underline">Hapus</button>
+                                    <button type="button" class="text-red-600 hover:underline btn-delete" data-id="{{ $surat->id }}">Hapus</button>
                                 </form>
                             </td>
                         </tr>
@@ -80,4 +84,33 @@
             </div>
         </div>
     </div>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const deleteButtons = document.querySelectorAll('.btn-delete');
+
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', function () {
+                    const suratId = this.getAttribute('data-id');
+
+                    Swal.fire({
+                        title: 'Yakin ingin menghapus?',
+                        text: "Data ini tidak bisa dikembalikan!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6',
+                        confirmButtonText: 'Ya, hapus!',
+                        cancelButtonText: 'Batal'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            document.getElementById(`delete-form-${suratId}`).submit();
+                        }
+                    });
+                });
+            });
+        });
+    </script>
 </x-app-layout>
