@@ -288,7 +288,6 @@ class PengajuanSuratController extends Controller
             imagesavealpha($signature, true);
             imagealphablending($signature, true);
 
-            // Ukuran canvas gabungan
             $canvasWidth = 250;
             $canvasHeight = 130;
             $combined = imagecreatetruecolor($canvasWidth, $canvasHeight);
@@ -296,19 +295,16 @@ class PengajuanSuratController extends Controller
             $transparent = imagecolorallocatealpha($combined, 0, 0, 0, 127);
             imagefill($combined, 0, 0, $transparent);
 
-            // Resize stempel
             $stempelResized = imagecreatetruecolor(180, 100);
             imagesavealpha($stempelResized, true);
             imagefill($stempelResized, 0, 0, $transparent);
             imagecopyresampled($stempelResized, $stempel, 0, 0, 0, 0, 120, 60, imagesx($stempel), imagesy($stempel));
 
-            // Resize tanda tangan (lebih besar)
             $signatureResized = imagecreatetruecolor(220, 140);
             imagesavealpha($signatureResized, true);
             imagefill($signatureResized, 0, 0, $transparent);
             imagecopyresampled($signatureResized, $signature, 0, 0, 0, 0, 180, 100, imagesx($signature), imagesy($signature));
 
-            // Tempelkan stempel (bawah) dan tanda tangan (atas)
             imagecopy($combined, $stempelResized, 65, 50, 0, 0, 120, 60);
             imagecopy($combined, $signatureResized, 35, 0, 0, 0, 180, 100);
 
@@ -335,7 +331,14 @@ class PengajuanSuratController extends Controller
 
         $templateProcessor->saveAs($docxPath);
 
-        $libreOfficePath = '"C:\Program Files\LibreOffice\program\soffice.exe"';
+        // ✅ Deteksi OS dan sesuaikan path LibreOffice
+        $os = strtoupper(substr(PHP_OS, 0, 3));
+        if ($os === 'WIN') {
+            $libreOfficePath = '"C:\Program Files\LibreOffice\program\soffice.exe"';
+        } else {
+            $libreOfficePath = 'soffice'; // Harus terinstal di Linux dan berada di PATH
+        }
+
         $command = $libreOfficePath . ' --headless --convert-to pdf --outdir "' . $outputDir . '" "' . $docxPath . '"';
         exec($command, $output, $resultCode);
 
@@ -394,5 +397,65 @@ class PengajuanSuratController extends Controller
         ]);
 
         return redirect()->route('pengajuan_surat.index')->with('success', 'Pengajuan surat berhasil diperbarui.');
+    }
+
+    public function preview($id)
+    {
+        $pengajuan = PengajuanSurat::with('template')->findOrFail($id);
+        $template = $pengajuan->template;
+        $filePath = storage_path('app/public/' . $template->file_path);
+
+        if (!file_exists($filePath)) {
+            return response()->json(['error' => 'File template tidak ditemukan.'], 404);
+        }
+
+        $templateProcessor = new \PhpOffice\PhpWord\TemplateProcessor($filePath);
+
+        $konten = json_decode($pengajuan->konten, true) ?? [];
+        $systemData = $this->getKaprodiData();
+        $systemData['nomor_surat'] = $pengajuan->nomor_surat ?? $this->getNomorSurat($pengajuan);
+        $allData = array_merge($konten, $systemData);
+
+        foreach ($allData as $key => $value) {
+            if (in_array($key, ['ttd_kaprodi', 'stempel', 'ttdstempelbasah'])) continue;
+            if (!is_string($value) && !is_numeric($value)) {
+                $value = json_encode($value);
+            }
+            $templateProcessor->setValue($key, $value ?? '');
+        }
+
+        $outputDir = storage_path('app/public/generated');
+        if (!file_exists($outputDir)) {
+            mkdir($outputDir, 0755, true);
+        }
+
+        $filename = Str::slug($template->nama_surat) . '-preview-' . $pengajuan->id;
+        $docxPath = $outputDir . '/' . $filename . '.docx';
+        $pdfPath = $outputDir . '/' . $filename . '.pdf';
+
+        $templateProcessor->saveAs($docxPath);
+
+        // Deteksi OS dan atur path soffice
+        $os = strtoupper(substr(PHP_OS, 0, 3));
+        if ($os === 'WIN') {
+            $libreOfficePath = '"C:\Program Files\LibreOffice\program\soffice.exe"';
+        } else {
+            $libreOfficePath = 'soffice'; // Linux: pastikan libreoffice diinstall dan ada di PATH
+        }
+
+        $command = $libreOfficePath . ' --headless --convert-to pdf --outdir "' . $outputDir . '" "' . $docxPath . '"';
+        exec($command, $output, $resultCode);
+
+        if (!file_exists($pdfPath)) {
+            return response()->json(['error' => 'Gagal mengonversi file ke PDF.'], 500);
+        }
+
+        // Optional: hapus file docx hasil sementara
+        unlink($docxPath);
+
+        // Kembalikan URL ke PDF
+        return response()->json([
+            'url' => asset('storage/generated/' . $filename . '.pdf')
+        ]);
     }
 }

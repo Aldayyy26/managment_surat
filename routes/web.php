@@ -30,6 +30,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/approve', [ApproveController::class, 'index'])->name('approve.index');
     Route::post('/pengajuan_surat/{pengajuanSurat}/diterima', [ApproveController::class, 'approve']);
     Route::post('/pengajuan_surat/{pengajuanSurat}/ditolak', [ApproveController::class, 'reject']);
+    Route::get('/pengajuan_surat/{id}/preview', [PengajuanSuratController::class, 'preview'])->name('pengajuan_surat.preview');
 
     Route::get('/pengajuan_surat/get-placeholders/{id}', [PengajuanSuratController::class, 'getPlaceholders'])->name('pengajuan_surat.get_placeholders');
 

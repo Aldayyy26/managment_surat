@@ -32,7 +32,10 @@
                                     <td class="border border-gray-300 px-4 py-2">{{ $surat->user->name }}</td>
                                     <td class="border border-gray-300 px-4 py-2">
                                         {{ Str::limit(implode(', ', json_decode($surat->konten, true)), 50, '...') }}
-                                        <button class="text-blue-500 underline text-sm" onclick="showSuratDetail(`{{ json_encode(json_decode($surat->konten, true)) }}`)">Lihat Detail</button>
+                                        <button class="text-blue-500 underline text-sm"
+                                            onclick="previewPdf('{{ route('pengajuan_surat.preview', $surat->id) }}')">
+                                            Lihat Detail
+                                        </button>
                                     </td>
                                     <td class="border border-gray-300 px-4 py-2 flex space-x-2">
                                         <button
@@ -55,12 +58,14 @@
                     </div>
                 </div>
 
-                <!-- Modal Detail Surat -->
-                <div id="suratDetailModal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50">
-                    <div class="bg-white rounded-lg shadow-lg p-6 w-96">
-                        <h2 class="text-xl font-bold mb-4">Detail Surat</h2>
-                        <p id="suratContent" class="text-gray-700"></p>
-                        <button class="bg-gray-500 text-white px-4 py-2 rounded-md mt-4" onclick="closeSuratDetailModal()">Tutup</button>
+                <!-- Modal Preview PDF -->
+                <div id="pdfModal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50">
+                    <div class="bg-white rounded-lg shadow-lg w-full max-w-4xl h-[80vh] flex flex-col">
+                        <div class="flex justify-between items-center p-4 border-b">
+                            <h2 class="text-xl font-bold">Preview Surat</h2>
+                            <button onclick="closePdfModal()" class="text-red-600 font-bold text-lg">&times;</button>
+                        </div>
+                        <iframe id="pdfFrame" class="flex-1 w-full" frameborder="0"></iframe>
                     </div>
                 </div>
 
@@ -94,122 +99,131 @@
             </div>
         </div>
     </div>
-</x-app-layout>
 
-<!-- SweetAlert -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- SweetAlert -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<!-- CSRF Token -->
-<meta name="csrf-token" content="{{ csrf_token() }}">
+    <!-- CSRF Token -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
-<script>
-    function showSuratDetail(content) {
-        const parsedContent = JSON.parse(content);
-        const formatted = Object.entries(parsedContent)
-            .map(([key, val]) => `<strong>${key}</strong>: ${val}`)
-            .join("<br>");
-        document.getElementById('suratContent').innerHTML = formatted;
-        document.getElementById('suratDetailModal').classList.remove('hidden');
-    }
-
-    function closeSuratDetailModal() {
-        document.getElementById('suratDetailModal').classList.add('hidden');
-    }
-
-    function openTtdTypeModal(suratId) {
-        document.getElementById('surat_id').value = suratId;
-        document.getElementById('ttdTypeModal').classList.remove('hidden');
-    }
-
-    function closeTtdTypeModal() {
-        document.getElementById('ttdTypeModal').classList.add('hidden');
-    }
-
-    document.getElementById('ttdForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-
-        const suratId = document.getElementById('surat_id').value;
-        const ttdType = document.querySelector('input[name="ttd_type"]:checked').value;
-
-        fetch(`/pengajuan_surat/${suratId}/diterima`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                },
-                body: JSON.stringify({
-                    ttd_type: ttdType
+    <script>
+        function previewPdf(url) {
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.url) {
+                        document.getElementById('pdfFrame').src = data.url;
+                        document.getElementById('pdfModal').classList.remove('hidden');
+                    } else {
+                        alert("Gagal memuat file PDF.");
+                    }
                 })
-            })
-            .then(res => res.json())
-            .then(data => {
-                closeTtdTypeModal();
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Berhasil!',
-                    text: data.message,
-                    timer: 2000,
-                    showConfirmButton: false
+                .catch(() => {
+                    alert("Gagal memuat preview surat.");
                 });
-                document.querySelector(`button[onclick="openTtdTypeModal(${suratId})"]`).closest('tr').remove();
-            })
-            .catch(() => {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Gagal!',
-                    text: 'Terjadi kesalahan saat menyetujui surat.'
-                });
-            });
-    });
+        }
 
-    function rejectSurat(suratId) {
-        Swal.fire({
-            title: 'Tolak Surat',
-            input: 'textarea',
-            inputLabel: 'Alasan Penolakan',
-            inputPlaceholder: 'Tuliskan alasan mengapa surat ini ditolak...',
-            inputAttributes: {
-                'aria-label': 'Alasan penolakan'
-            },
-            showCancelButton: true,
-            confirmButtonText: 'Kirim Penolakan',
-            cancelButtonText: 'Batal',
-            inputValidator: (value) => {
-                if (!value) {
-                    return 'Alasan penolakan wajib diisi!';
-                }
-            }
-        }).then(result => {
-            if (result.isConfirmed) {
-                fetch(`/pengajuan_surat/${suratId}/ditolak`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                        },
-                        body: JSON.stringify({
-                            catatan: result.value
-                        })
+
+        function closePdfModal() {
+            document.getElementById('pdfModal').classList.add('hidden');
+            document.getElementById('pdfFrame').src = '';
+        }
+
+        function openTtdTypeModal(suratId) {
+            document.getElementById('surat_id').value = suratId;
+            document.getElementById('ttdTypeModal').classList.remove('hidden');
+        }
+
+        function closeTtdTypeModal() {
+            document.getElementById('ttdTypeModal').classList.add('hidden');
+        }
+
+        document.getElementById('ttdForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const suratId = document.getElementById('surat_id').value;
+            const ttdType = document.querySelector('input[name="ttd_type"]:checked').value;
+
+            fetch(`/pengajuan_surat/${suratId}/diterima`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({
+                        ttd_type: ttdType
                     })
-                    .then(res => res.json())
-                    .then(data => {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Ditolak',
-                            text: data.message,
-                            timer: 2000,
-                            showConfirmButton: false
-                        });
-                        document.querySelector(`button[onclick="rejectSurat(${suratId})"]`).closest('tr').remove();
-                    })
-                    .catch(() => {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Gagal!',
-                            text: 'Terjadi kesalahan saat menolak surat.'
-                        });
+                })
+                .then(res => res.json())
+                .then(data => {
+                    closeTtdTypeModal();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: data.message,
+                        timer: 2000,
+                        showConfirmButton: false
                     });
-            }
+                    document.querySelector(`button[onclick="openTtdTypeModal(${suratId})"]`).closest('tr').remove();
+                })
+                .catch(() => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal!',
+                        text: 'Terjadi kesalahan saat menyetujui surat.'
+                    });
+                });
         });
-    }
-</script>
+
+        function rejectSurat(suratId) {
+            Swal.fire({
+                title: 'Tolak Surat',
+                input: 'textarea',
+                inputLabel: 'Alasan Penolakan',
+                inputPlaceholder: 'Tuliskan alasan mengapa surat ini ditolak...',
+                inputAttributes: {
+                    'aria-label': 'Alasan penolakan'
+                },
+                showCancelButton: true,
+                confirmButtonText: 'Kirim Penolakan',
+                cancelButtonText: 'Batal',
+                inputValidator: (value) => {
+                    if (!value) {
+                        return 'Alasan penolakan wajib diisi!';
+                    }
+                }
+            }).then(result => {
+                if (result.isConfirmed) {
+                    fetch(`/pengajuan_surat/${suratId}/ditolak`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                            },
+                            body: JSON.stringify({
+                                catatan: result.value
+                            })
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Ditolak',
+                                text: data.message,
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                            document.querySelector(`button[onclick="rejectSurat(${suratId})"]`).closest('tr').remove();
+                        })
+                        .catch(() => {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Gagal!',
+                                text: 'Terjadi kesalahan saat menolak surat.'
+                            });
+                        });
+                }
+            });
+        }
+    </script>
+</x-app-layout>
