@@ -68,8 +68,11 @@ class UserController extends Controller
     public function create()
     {
         $roles = Role::all();
-        return view('Users.create', compact('roles'));
+        $kepalaProdiExists = User::role('kepalaprodi')->exists(); // pakai lowercase
+
+        return view('Users.create', compact('roles', 'kepalaProdiExists'));
     }
+
 
     public function store(Request $request)
     {
@@ -87,6 +90,17 @@ class UserController extends Controller
             'whatsapp_number' => 'nullable|string|max:20|unique:users,whatsapp_number',
         ]);
 
+        if ($request->roles === 'super_admin') {
+            return back()->withErrors(['roles' => 'Tidak diizinkan membuat akun dengan role Superadmin.'])->withInput();
+        }
+
+        if ($request->roles === 'kepalaprodi') {
+            $existing = User::role('kepalaprodi')->first();
+            if ($existing) {
+                return back()->withErrors(['roles' => 'Akun dengan role Kepala Prodi sudah ada.'])->withInput();
+            }
+        }
+
         $data = $request->only('name', 'email', 'nim', 'nidn', 'nip', 'status', 'semester', 'whatsapp_number');
 
         if ($request->hasFile('avatar')) {
@@ -99,11 +113,12 @@ class UserController extends Controller
 
         $user = User::create($data);
 
-        // assignRole langsung string
         $user->assignRole($request->roles);
 
         return redirect()->route('users.index')->with('success', 'User created successfully.');
     }
+
+
 
     public function update(Request $request, $id)
     {

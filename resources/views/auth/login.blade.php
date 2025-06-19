@@ -51,7 +51,8 @@
                             <input class="form-control" type="email" name="email" placeholder="Email" required>
                             <input class="form-control" type="password" name="password" placeholder="Password" required>
                             <div class="form-button">
-                                <button id="submit" type="submit" class="ibtn">Login</button> <a href="#">Lupa password?</a>
+                                <button id="submit" type="submit" class="ibtn">Login</button>
+                                <a href="#"><strong>Lupa password?</strong></a> Silahkan untuk menghubungi admin
                             </div>
                         </form>
                     </div>

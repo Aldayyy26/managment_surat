@@ -113,18 +113,27 @@
                             @enderror
                         </div>
 
-                        <!-- Roles -->
-                        <div>
-                            <label for="roles" class="block text-sm font-medium text-gray-700">Roles</label>
-                            <select id="roles" name="roles" class="mt-2 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                                @foreach ($roles as $role)
-                                <option value="{{ $role->name }}" {{ old('roles') == $role->name ? 'selected' : '' }}>{{ $role->name }}</option>
-                                @endforeach
-                            </select>
-                            @error('roles')
-                            <span class="text-red-600 text-sm mt-1">{{ $message }}</span>
-                            @enderror
-                        </div>
+                        <select id="roles" name="roles" class="mt-2 block w-full border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            @foreach ($roles as $role)
+                            @php
+                            $roleName = strtolower($role->name); // biar aman bandingkan lowercase
+                            @endphp
+
+                            @if ($roleName === 'super_admin')
+                            @continue
+                            @endif
+
+                            @if ($roleName === 'kepalaprodi' && $kepalaProdiExists)
+                            @continue
+                            @endif
+
+                            <option value="{{ $role->name }}" {{ old('roles') == $role->name ? 'selected' : '' }}>
+                                {{ ucfirst($role->name) }}
+                            </option>
+                            @endforeach
+                        </select>
+
+
                         <!-- Action Buttons -->
                         <!-- Action Buttons -->
                         <div class="col-span-full flex justify-end gap-4 mt-8">
