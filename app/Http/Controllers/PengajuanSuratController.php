@@ -138,7 +138,7 @@ class PengajuanSuratController extends Controller
             'konten' => 'required|array',
         ]);
 
-        Log::info('Validasi berhasil.', $request->all());
+        Log::info('Validasi awal berhasil.', $request->all());
 
         $template = TemplateSurat::findOrFail($request->template_id);
         $placeholders = json_decode($template->required_placeholders, true);
@@ -150,16 +150,41 @@ class PengajuanSuratController extends Controller
             return back()->with('error', 'Format placeholders pada template tidak valid.');
         }
 
+        // Validasi dinamis berdasarkan config
+        $dynamicRules = [];
+
         foreach ($placeholders as $key => $config) {
-            if (!isset($request->konten[$key]) || empty($request->konten[$key])) {
-                Log::warning("Konten '{$key}' kosong.");
-                return back()->withInput()->withErrors([
-                    "konten.{$key}" => "Field '{$config['label']}' wajib diisi.",
-                ]);
+            $rules = [];
+
+            // Tangani nullable
+            if (!empty($config['nullable'])) {
+                $rules[] = 'nullable';
+            } else {
+                $rules[] = 'required';
             }
+
+            // Tambah validasi tipe data
+            switch ($config['type']) {
+                case 'number':
+                    $rules[] = 'numeric';
+                    break;
+                case 'date':
+                    $rules[] = 'date';
+                    break;
+                case 'text':
+                case 'textarea':
+                default:
+                    $rules[] = 'string';
+                    break;
+            }
+
+            $dynamicRules["konten.$key"] = $rules;
         }
 
-        Log::info('Semua konten placeholder valid.');
+        // Jalankan validasi untuk konten
+        $request->validate($dynamicRules);
+
+        Log::info('Validasi semua konten placeholder berhasil.');
 
         $pengajuan = PengajuanSurat::create([
             'user_id' => Auth::id(),
@@ -191,6 +216,7 @@ class PengajuanSuratController extends Controller
 
         return redirect()->route('pengajuan_surat.index')->with('success', 'Pengajuan surat berhasil diajukan dan notifikasi terkirim.');
     }
+
 
     private function getKaprodiData()
     {
@@ -262,12 +288,16 @@ class PengajuanSuratController extends Controller
         foreach ($allData as $key => $value) {
             if (in_array($key, ['ttd_kaprodi', 'stempel', 'ttdstempelbasah'])) continue;
 
-            if (!is_string($value) && !is_numeric($value)) {
+            // Jangan tampilkan "null", tampilkan kosong jika null atau array kosong
+            if (is_null($value) || (is_array($value) && empty($value))) {
+                $value = '';
+            } elseif (!is_string($value) && !is_numeric($value)) {
                 $value = json_encode($value);
             }
 
-            $templateProcessor->setValue($key, $value ?? '');
+            $templateProcessor->setValue($key, $value);
         }
+
 
         $filename = \Illuminate\Support\Str::slug($template->nama_surat) . '-' . time();
         $outputDir = storage_path('app/public/generated');
@@ -319,8 +349,8 @@ class PengajuanSuratController extends Controller
 
             $templateProcessor->setImageValue('ttdstempelbasah', [
                 'path' => $combinedPath,
-                'width' => 180,
-                'height' => 100,
+                'width' => 300,
+                'height' => 120,
             ]);
         } else {
             $templateProcessor->setValue('ttdstempelbasah', '');
@@ -418,11 +448,18 @@ class PengajuanSuratController extends Controller
 
         foreach ($allData as $key => $value) {
             if (in_array($key, ['ttd_kaprodi', 'stempel', 'ttdstempelbasah'])) continue;
-            if (!is_string($value) && !is_numeric($value)) {
-                $value = json_encode($value);
+
+            if ($value === null) {
+                $value = '';
             }
-            $templateProcessor->setValue($key, $value ?? '');
+
+            if (!is_string($value) && !is_numeric($value)) {
+                $value = is_array($value) ? implode(', ', $value) : '';
+            }
+
+            $templateProcessor->setValue($key, $value);
         }
+
 
         $outputDir = storage_path('app/public/generated');
         if (!file_exists($outputDir)) {
