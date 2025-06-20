@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Response;
 use Mpdf\Mpdf;
 use Intervention\Image\Facades\Image;
 use Intervention\Image\ImageManager;
+use setasign\Fpdi\Fpdi;
 
 
 class PengajuanSuratController extends Controller
@@ -266,7 +267,6 @@ class PengajuanSuratController extends Controller
     }
 
 
-
     public function download($id)
     {
         $pengajuan = PengajuanSurat::with('template')->findOrFail($id);
@@ -288,7 +288,6 @@ class PengajuanSuratController extends Controller
         foreach ($allData as $key => $value) {
             if (in_array($key, ['ttd_kaprodi', 'stempel', 'ttdstempelbasah'])) continue;
 
-            // Jangan tampilkan "null", tampilkan kosong jika null atau array kosong
             if (is_null($value) || (is_array($value) && empty($value))) {
                 $value = '';
             } elseif (!is_string($value) && !is_numeric($value)) {
@@ -298,6 +297,8 @@ class PengajuanSuratController extends Controller
             $templateProcessor->setValue($key, $value);
         }
 
+        // Kosongkan placeholder gambar
+        $templateProcessor->setValue('ttdstempelbasah', '');
 
         $filename = \Illuminate\Support\Str::slug($template->nama_surat) . '-' . time();
         $outputDir = storage_path('app/public/generated');
@@ -306,8 +307,10 @@ class PengajuanSuratController extends Controller
             mkdir($outputDir, 0755, true);
         }
 
+        // Gabungkan tanda tangan dan stempel ke satu gambar
         $signaturePath = storage_path('app/public/' . $pengajuan->signature);
         $stempelPath = storage_path('app/public/stempels/stempel_kaprodi.png');
+        $combinedPath = null;
 
         if (!empty($pengajuan->signature) && file_exists($signaturePath) && file_exists($stempelPath)) {
             $stempel = imagecreatefrompng($stempelPath);
@@ -318,42 +321,68 @@ class PengajuanSuratController extends Controller
             imagesavealpha($signature, true);
             imagealphablending($signature, true);
 
-            $canvasWidth = 250;
+            // Ukuran canvas berdasarkan tanda tangan dominan
+            $canvasWidth = 280;
             $canvasHeight = 130;
+
             $combined = imagecreatetruecolor($canvasWidth, $canvasHeight);
             imagesavealpha($combined, true);
             $transparent = imagecolorallocatealpha($combined, 0, 0, 0, 127);
             imagefill($combined, 0, 0, $transparent);
 
-            $stempelResized = imagecreatetruecolor(180, 100);
-            imagesavealpha($stempelResized, true);
-            imagefill($stempelResized, 0, 0, $transparent);
-            imagecopyresampled($stempelResized, $stempel, 0, 0, 0, 0, 120, 60, imagesx($stempel), imagesy($stempel));
-
-            $signatureResized = imagecreatetruecolor(220, 140);
+            // Resize tanda tangan (besar dan dominan)
+            $signatureResized = imagecreatetruecolor($canvasWidth, $canvasHeight);
             imagesavealpha($signatureResized, true);
             imagefill($signatureResized, 0, 0, $transparent);
-            imagecopyresampled($signatureResized, $signature, 0, 0, 0, 0, 180, 100, imagesx($signature), imagesy($signature));
+            imagecopyresampled(
+                $signatureResized,
+                $signature,
+                0,
+                0,
+                0,
+                0,
+                $canvasWidth,
+                $canvasHeight,
+                imagesx($signature),
+                imagesy($signature)
+            );
 
-            imagecopy($combined, $stempelResized, 65, 50, 0, 0, 120, 60);
-            imagecopy($combined, $signatureResized, 35, 0, 0, 0, 180, 100);
+            // Resize stempel (lebih kecil dari tanda tangan)
+            $stempelWidth = 130;
+            $stempelHeight = 70;
+            $stempelResized = imagecreatetruecolor($stempelWidth, $stempelHeight);
+            imagesavealpha($stempelResized, true);
+            imagefill($stempelResized, 0, 0, $transparent);
+            imagecopyresampled(
+                $stempelResized,
+                $stempel,
+                0,
+                0,
+                0,
+                0,
+                $stempelWidth,
+                $stempelHeight,
+                imagesx($stempel),
+                imagesy($stempel)
+            );
+
+            // Gabungkan: tanda tangan dulu
+            imagecopy($combined, $signatureResized, 0, 0, 0, 0, $canvasWidth, $canvasHeight);
+
+            // Lalu stempel di tengah bawah
+            $stempelX = intval(($canvasWidth - $stempelWidth) / 2) - 20;
+            $stempelY = intval(($canvasHeight - $stempelHeight) / 2 - 10);
+            imagecopy($combined, $stempelResized, $stempelX, $stempelY, 0, 0, $stempelWidth, $stempelHeight);
 
             $combinedPath = $outputDir . '/' . $filename . '-combined.png';
             imagepng($combined, $combinedPath);
 
+            // Cleanup
             imagedestroy($combined);
             imagedestroy($stempel);
             imagedestroy($signature);
             imagedestroy($stempelResized);
             imagedestroy($signatureResized);
-
-            $templateProcessor->setImageValue('ttdstempelbasah', [
-                'path' => $combinedPath,
-                'width' => 300,
-                'height' => 120,
-            ]);
-        } else {
-            $templateProcessor->setValue('ttdstempelbasah', '');
         }
 
         $docxPath = $outputDir . '/' . $filename . '.docx';
@@ -361,13 +390,11 @@ class PengajuanSuratController extends Controller
 
         $templateProcessor->saveAs($docxPath);
 
-        // ✅ Deteksi OS dan sesuaikan path LibreOffice
+        // Konversi ke PDF
         $os = strtoupper(substr(PHP_OS, 0, 3));
-        if ($os === 'WIN') {
-            $libreOfficePath = '"C:\Program Files\LibreOffice\program\soffice.exe"';
-        } else {
-            $libreOfficePath = 'soffice'; // Harus terinstal di Linux dan berada di PATH
-        }
+        $libreOfficePath = ($os === 'WIN')
+            ? '"C:\Program Files\LibreOffice\program\soffice.exe"'
+            : 'soffice';
 
         $command = $libreOfficePath . ' --headless --convert-to pdf --outdir "' . $outputDir . '" "' . $docxPath . '"';
         exec($command, $output, $resultCode);
@@ -377,6 +404,20 @@ class PengajuanSuratController extends Controller
         }
 
         unlink($docxPath);
+
+        // Tempel gambar final di atas PDF
+        if ($combinedPath && file_exists($combinedPath)) {
+            $pdf = new Fpdi();
+            $pageCount = $pdf->setSourceFile($pdfPath);
+            $templateId = $pdf->importPage(1);
+            $pdf->AddPage();
+            $pdf->useTemplate($templateId);
+
+            // Tempelkan tepat di placeholder (${ttdstempelbasah})
+            $pdf->Image($combinedPath, 125, 200, 70, 35); // X, Y, width, height (mm)
+
+            $pdf->Output('F', $pdfPath);
+        }
 
         return response()->download($pdfPath)->deleteFileAfterSend(true);
     }
@@ -449,8 +490,10 @@ class PengajuanSuratController extends Controller
         foreach ($allData as $key => $value) {
             if (in_array($key, ['ttd_kaprodi', 'stempel', 'ttdstempelbasah'])) continue;
 
-            if ($value === null) {
-                $value = '';
+            if ($value === null || (is_string($value) && trim($value) === '')) {
+                // Kosong: hapus placeholder dengan mengisinya string kosong
+                $templateProcessor->setValue($key, '');
+                continue;
             }
 
             if (!is_string($value) && !is_numeric($value)) {
@@ -459,6 +502,7 @@ class PengajuanSuratController extends Controller
 
             $templateProcessor->setValue($key, $value);
         }
+
 
 
         $outputDir = storage_path('app/public/generated');
