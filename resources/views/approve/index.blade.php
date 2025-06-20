@@ -72,20 +72,20 @@
                 <!-- Modal Pilih Tanda Tangan -->
                 <div id="ttdTypeModal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50">
                     <div class="bg-white rounded-lg shadow-lg p-6 w-80">
-                        <h2 class="text-xl font-bold mb-4">Pilih Tanda Tangan</h2>
+                        <h2 class="text-xl font-bold mb-4">Pilih Opsi TTD dan Stempel</h2>
                         <form id="ttdForm">
                             @csrf
                             <input type="hidden" name="surat_id" id="surat_id" value="">
                             <div class="mb-4">
                                 <label class="inline-flex items-center">
                                     <input type="radio" name="ttd_type" value="digital" class="form-radio" checked>
-                                    <span class="ml-2">Tanda Tangan Digital</span>
+                                    <span class="ml-2">Digital</span>
                                 </label>
                             </div>
                             <div class="mb-4">
                                 <label class="inline-flex items-center">
                                     <input type="radio" name="ttd_type" value="basah" class="form-radio">
-                                    <span class="ml-2">Tanda Tangan Basah</span>
+                                    <span class="ml-2">Basah</span>
                                 </label>
                             </div>
                             <div class="flex justify-end space-x-2">
