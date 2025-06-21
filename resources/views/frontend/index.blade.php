@@ -48,6 +48,10 @@
     background-color: #f1f1f1;
     border-radius: 50%;
   }
+
+  [x-cloak] {
+    display: none !important;
+  }
 </style>
 
 <body class="index-page">
@@ -55,49 +59,75 @@
   <header id="header" class="header d-flex align-items-center fixed-top">
     <div class="header-container container-fluid container-xl d-flex justify-content-between align-items-center">
       <a href="{{ url('/') }}" class="logo d-flex align-items-center">
-        <h1 class="sitename">SPETI</h1>
+        <h1 class="sitename fs-4 fs-xl-1">SPETI</h1>
       </a>
 
       <!-- Navigation Menu -->
       <nav id="navmenu" class="navmenu">
         <ul>
           <li><a href="#hero" class="active">Home</a></li>
-          <li class="dropdown">
-            <a href="{{ url('/pengajuan_surat/create') }}"><span>Layanan Surat</span></a>
+          <li><a href="{{ url('/pengajuan_surat/create') }}">Layanan Surat</a></li>
+
+          @guest
+          <li class="d-block d-xl-none">
+            <a href="{{ url('login') }}">Login</a>
           </li>
+          @endguest
+
+          @auth
+          <!-- Dropdown user (MOBILE) -->
+          <li x-data="{ openMobile: false }" class="d-block d-xl-none position-relative">
+            <button @click="openMobile = !openMobile" class="btn w-100 text-start d-flex justify-content-between align-items-center">
+              <span>{{ Auth::user()->name }}</span>
+              <i class="bi bi-chevron-down ms-1"></i>
+            </button>
+
+            <div x-show="openMobile" x-transition x-cloak
+              class="bg-white border rounded shadow mt-2 p-2 position-absolute w-100"
+              style="z-index: 1000;">
+              <a href="{{ route('dashboard') }}" class="dropdown-item">Dashboard</a>
+              <a href="{{ route('profile.edit') }}" class="dropdown-item">Profile</a>
+              <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <a href="{{ route('logout') }}"
+                  onclick="event.preventDefault(); this.closest('form').submit();"
+                  class="dropdown-item">Log Out</a>
+              </form>
+            </div>
+          </li>
+          @endauth
         </ul>
+
         <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
       </nav>
 
-      <!-- User Dropdown -->
+      <!-- Dropdown user (DESKTOP) -->
       @auth
-      <div x-data="{ open: false }" class="relative">
-        <button @click="open = !open" class="text-gray-700 font-medium">
+      <div x-data="{ openDesktop: false }" class="position-relative d-none d-xl-block">
+        <button @click="openDesktop = !openDesktop" class="btn btn-link text-decoration-none text-dark">
           {{ Auth::user()->name }} <i class="bi bi-chevron-down"></i>
         </button>
-        <div
-          x-show="open"
-          @click.away="open = false"
-          class="absolute right-0 mt-2 bg-white border rounded shadow-lg w-40"
-          style="display: none;">
-          <a href="{{ route('dashboard') }}" class="block px-4 py-2 text-sm text-gray-700">Dashboard</a>
-          <a href="{{ route('profile.edit') }}" class="block px-4 py-2 text-sm text-gray-700">Profile</a>
+        <div x-show="openDesktop" x-transition @click.away="openDesktop = false"
+          class="position-absolute bg-white border rounded shadow p-2 mt-2"
+          style="right: 0; min-width: 150px; z-index: 1000;" x-cloak>
+          <a href="{{ route('dashboard') }}" class="dropdown-item">Dashboard</a>
+          <a href="{{ route('profile.edit') }}" class="dropdown-item">Profile</a>
           <form method="POST" action="{{ route('logout') }}">
             @csrf
-            <a
-              href="{{ route('logout') }}"
+            <a href="{{ route('logout') }}"
               onclick="event.preventDefault(); this.closest('form').submit();"
-              class="block px-4 py-2 text-sm text-gray-700">
-              Log Out
-            </a>
+              class="dropdown-item">Log Out</a>
           </form>
         </div>
       </div>
       @else
-      <a class="btn-getstarted" href="{{ url('login') }}">Login</a>
+      <div class="d-none d-xl-block">
+        <a class="btn-getstarted" href="{{ url('login') }}">Login</a>
+      </div>
       @endauth
     </div>
   </header>
+
 
 
   <main class="main">
