@@ -491,7 +491,6 @@ class PengajuanSuratController extends Controller
             if (in_array($key, ['ttd_kaprodi', 'stempel', 'ttdstempelbasah'])) continue;
 
             if ($value === null || (is_string($value) && trim($value) === '')) {
-                // Kosong: hapus placeholder dengan mengisinya string kosong
                 $templateProcessor->setValue($key, '');
                 continue;
             }
@@ -503,8 +502,6 @@ class PengajuanSuratController extends Controller
             $templateProcessor->setValue($key, $value);
         }
 
-
-
         $outputDir = storage_path('app/public/generated');
         if (!file_exists($outputDir)) {
             mkdir($outputDir, 0755, true);
@@ -514,15 +511,98 @@ class PengajuanSuratController extends Controller
         $docxPath = $outputDir . '/' . $filename . '.docx';
         $pdfPath = $outputDir . '/' . $filename . '.pdf';
 
+        // Gabungkan tanda tangan dan stempel
+        $signaturePath = storage_path('app/public/' . $pengajuan->signature);
+        $stempelPath = storage_path('app/public/stempels/stempel_kaprodi.png');
+        $combinedPath = null;
+
+        if (!empty($pengajuan->signature) && file_exists($signaturePath) && file_exists($stempelPath)) {
+            $stempel = imagecreatefrompng($stempelPath);
+            $signature = imagecreatefrompng($signaturePath);
+
+            imagesavealpha($stempel, true);
+            imagealphablending($stempel, true);
+            imagesavealpha($signature, true);
+            imagealphablending($signature, true);
+
+            $canvasWidth = 280;
+            $canvasHeight = 130;
+
+            $combined = imagecreatetruecolor($canvasWidth, $canvasHeight);
+            imagesavealpha($combined, true);
+            $transparent = imagecolorallocatealpha($combined, 0, 0, 0, 127);
+            imagefill($combined, 0, 0, $transparent);
+
+            // Resize
+            $signatureResized = imagecreatetruecolor($canvasWidth, $canvasHeight);
+            imagesavealpha($signatureResized, true);
+            imagefill($signatureResized, 0, 0, $transparent);
+            imagecopyresampled(
+                $signatureResized,
+                $signature,
+                0,
+                0,
+                0,
+                0,
+                $canvasWidth,
+                $canvasHeight,
+                imagesx($signature),
+                imagesy($signature)
+            );
+
+            $stempelWidth = 130;
+            $stempelHeight = 70;
+            $stempelResized = imagecreatetruecolor($stempelWidth, $stempelHeight);
+            imagesavealpha($stempelResized, true);
+            imagefill($stempelResized, 0, 0, $transparent);
+            imagecopyresampled(
+                $stempelResized,
+                $stempel,
+                0,
+                0,
+                0,
+                0,
+                $stempelWidth,
+                $stempelHeight,
+                imagesx($stempel),
+                imagesy($stempel)
+            );
+
+            imagecopy($combined, $signatureResized, 0, 0, 0, 0, $canvasWidth, $canvasHeight);
+
+            $stempelX = intval(($canvasWidth - $stempelWidth) / 2) - 20;
+            $stempelY = intval(($canvasHeight - $stempelHeight) / 2 - 10);
+            imagecopy($combined, $stempelResized, $stempelX, $stempelY, 0, 0, $stempelWidth, $stempelHeight);
+
+            $combinedPath = $outputDir . '/' . $filename . '-combined.png';
+            imagepng($combined, $combinedPath);
+
+            // Cleanup
+            imagedestroy($combined);
+            imagedestroy($stempel);
+            imagedestroy($signature);
+            imagedestroy($stempelResized);
+            imagedestroy($signatureResized);
+
+            // Masukkan gambar ke dalam Word template
+            $templateProcessor->setImageValue('ttdstempelbasah', [
+                'path' => $combinedPath,
+                'width' => 180,
+                'height' => 100,
+                'ratio' => true
+            ]);
+        } else {
+            // Hapus placeholder jika tidak ada gambar
+            $templateProcessor->setValue('ttdstempelbasah', '');
+        }
+
         $templateProcessor->saveAs($docxPath);
 
-        // Deteksi OS dan atur path soffice
+        // Konversi ke PDF
         $os = strtoupper(substr(PHP_OS, 0, 3));
-        if ($os === 'WIN') {
-            $libreOfficePath = '"C:\Program Files\LibreOffice\program\soffice.exe"';
-        } else {
-            $libreOfficePath = 'soffice'; // Linux: pastikan libreoffice diinstall dan ada di PATH
-        }
+        $libreOfficePath = ($os === 'WIN')
+            ? '"C:\Program Files\LibreOffice\program\soffice.exe"'
+            : 'soffice';
 
         $command = $libreOfficePath . ' --headless --convert-to pdf --outdir "' . $outputDir . '" "' . $docxPath . '"';
         exec($command, $output, $resultCode);
@@ -531,10 +611,9 @@ class PengajuanSuratController extends Controller
             return response()->json(['error' => 'Gagal mengonversi file ke PDF.'], 500);
         }
 
-        // Optional: hapus file docx hasil sementara
+        // Hapus file sementara
         unlink($docxPath);
 
-        // Kembalikan URL ke PDF
         return response()->json([
             'url' => asset('storage/generated/' . $filename . '.pdf')
         ]);
