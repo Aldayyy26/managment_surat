@@ -12,25 +12,37 @@
 
             <!-- Search Form -->
             <div class="flex justify-end mb-4">
-                <form method="GET" action="{{ route('pengajuan_surat.index') }}" class="flex flex-col sm:flex-row gap-4">
-                    <input type="text" name="nama_surat" placeholder="Cari judul surat" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" value="{{ request('nama_surat') }}">
+                <form method="GET" action="{{ route('pengajuan_surat.index') }}" class="flex flex-wrap sm:flex-nowrap gap-4 w-full sm:w-auto">
+                    <input
+                        type="text"
+                        name="nama_surat"
+                        placeholder="Cari judul surat"
+                        class="w-full sm:w-64 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        value="{{ request('nama_surat') }}">
 
-                    <select name="status" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <select
+                        name="status"
+                        class="w-full sm:w-40 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         <option value="">Semua Status</option>
                         <option value="proses" {{ request('status') == 'proses' ? 'selected' : '' }}>Proses</option>
                         <option value="diterima" {{ request('status') == 'diterima' ? 'selected' : '' }}>Diterima</option>
                         <option value="ditolak" {{ request('status') == 'ditolak' ? 'selected' : '' }}>Ditolak</option>
                     </select>
 
-                    <button type="submit" class="px-6 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition duration-300">
+                    <button
+                        type="submit"
+                        class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition duration-300">
                         Cari
                     </button>
 
                     @if(request('nama_surat') || request('status'))
-                    <a href="{{ route('pengajuan_surat.index') }}" class="px-6 py-2 bg-gray-400 text-white rounded-lg font-semibold hover:bg-gray-500 transition duration-300">
+                    <a
+                        href="{{ route('pengajuan_surat.index') }}"
+                        class="px-4 py-2 bg-gray-400 text-white rounded-lg font-semibold hover:bg-gray-500 transition duration-300 text-center">
                         Batal
                     </a>
                     @endif
+
                 </form>
             </div>
 
@@ -93,7 +105,5 @@
                 </div>
             </div>
         </div>
-    </div>
-    </div>
     </div>
 </x-app-layout>

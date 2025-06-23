@@ -17,13 +17,9 @@
                 <div class="flex justify-end">
                     <form method="GET" action="{{ route('users.index') }}" class="flex flex-wrap sm:flex-nowrap gap-4 items-center">
                         <input type="text" name="search_name" placeholder="Cari berdasarkan nama" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" value="{{ request()->get('search_name') }}">
-
                         <input type="text" name="search_nim" placeholder="Cari berdasarkan NIM" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" value="{{ request()->get('search_nim') }}">
-
                         <input type="text" name="search_nip" placeholder="Cari berdasarkan NIP" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" value="{{ request()->get('search_nip') }}">
-
                         <input type="text" name="search_nidn" placeholder="Cari berdasarkan NIDN" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" value="{{ request()->get('search_nidn') }}">
-
                         <select name="search_role" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
                             <option value="">Pilih Role</option>
                             @php
@@ -34,15 +30,13 @@
                                 <option value="{{ $role }}" {{ $selectedRole == $role ? 'selected' : '' }}>{{ ucfirst($role) }}</option>
                             @endforeach
                         </select>
-
                         <button type="submit" class="px-6 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition duration-300">
                             Cari
                         </button>
-
                         @if(request()->filled('search_name') || request()->filled('search_nim') || request()->filled('search_nip') || request()->filled('search_nidn') || request()->filled('search_role'))
-                        <a href="{{ route('users.index') }}" class="px-6 py-2 bg-gray-400 text-white rounded-lg font-semibold hover:bg-gray-500 transition duration-300">
-                            Batal
-                        </a>
+                            <a href="{{ route('users.index') }}" class="px-6 py-2 bg-gray-400 text-white rounded-lg font-semibold hover:bg-gray-500 transition duration-300">
+                                Batal
+                            </a>
                         @endif
                     </form>
                 </div>
@@ -50,63 +44,57 @@
 
             <div class="bg-white shadow-lg rounded-lg overflow-hidden">
                 <div class="overflow-x-auto">
-                    @foreach ($users as $user)
-                    <div class="rounded-lg p-4 mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between">
-                        <!-- User Info -->
-                        <div class="flex-1 flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-6">
-                            <div class="flex-1 min-w-[150px]">
-                                <p class="text-sm font-medium text-gray-700">Nama</p>
-                                <p class="mt-1 text-lg font-semibold text-gray-900">{{ $user->name }}</p>
-                            </div>
-                            <div class="flex-1 min-w-[200px]">
-                                <p class="text-sm font-medium text-gray-700">Email</p>
-                                <p class="mt-1 text-gray-900">{{ $user->email }}</p>
-                            </div>
-                            <div class="flex-1 min-w-[120px]">
-                                <p class="text-sm font-medium text-gray-700">Semester</p>
-                                <p class="mt-1 text-gray-900">
+                    @if($users->isNotEmpty())
+                    <table class="min-w-full table-auto divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">Nama</th>
+                                <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">Email</th>
+                                <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">Semester</th>
+                                <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">NIP</th>
+                                <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">NIDN</th>
+                                <th class="px-6 py-3 text-left text-sm font-medium text-gray-500">Roles</th>
+                                <th class="px-6 py-3 text-center text-sm font-medium text-gray-500">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            @foreach ($users as $user)
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">{{ $user->name }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $user->email }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                     @if ($user->hasRole('mahasiswa'))
                                         {{ $user->semester ?? '-' }}
                                     @else
                                         -
                                     @endif
-                                </p>
-                            </div>
-                            <div class="flex-1 min-w-[150px]">
-                                <p class="text-sm font-medium text-gray-700">NIP</p>
-                                <p class="mt-1 text-gray-900">{{ $user->nip ?? '-' }}</p>
-                            </div>
-                            <div class="flex-1 min-w-[150px]">
-                                <p class="text-sm font-medium text-gray-700">NIDN</p>
-                                <p class="mt-1 text-gray-900">{{ $user->nidn ?? '-' }}</p>
-                            </div>
-                            <div class="flex-1 min-w-[150px]">
-                                <p class="text-sm font-medium text-gray-700">Roles</p>
-                                <p class="mt-1 text-gray-900">
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $user->nip ?? '-' }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $user->nidn ?? '-' }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                     @foreach ($user->roles as $role)
                                         {{ $role->name }}@if (!$loop->last), @endif
                                     @endforeach
-                                </p>
-                            </div>
-                        </div>
-
-                        <!-- Action Buttons -->
-                        <div class="mt-4 sm:mt-0 flex space-x-2">
-                            <a href="{{ route('users.edit', $user->id) }}" class="px-4 py-2 bg-indigo-600 text-white rounded-full font-semibold hover:bg-indigo-700 transition duration-300">
-                                Edit
-                            </a>
-                            <form action="{{ route('users.destroy', $user->id) }}" method="POST" class="delete-form">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-full font-semibold hover:bg-red-700 transition duration-300">
-                                    Hapus
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                    @endforeach
-
-                    @if($users->isEmpty())
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-center text-sm">
+                                    <div class="flex justify-center space-x-2">
+                                        <a href="{{ route('users.edit', $user->id) }}" class="px-4 py-2 bg-indigo-600 text-white rounded-full font-semibold hover:bg-indigo-700 transition duration-300">
+                                            Edit
+                                        </a>
+                                        <form action="{{ route('users.destroy', $user->id) }}" method="POST" class="delete-form">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-full font-semibold hover:bg-red-700 transition duration-300">
+                                                Hapus
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                    @else
                         <p class="text-center py-6 text-gray-500">Tidak ada data pengguna ditemukan.</p>
                     @endif
                 </div>

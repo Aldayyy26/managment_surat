@@ -9,16 +9,17 @@
         <div class="max-w-6xl mx-auto sm:px-6 lg:px-8">
 
             @if(session('success'))
-                <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-                <script>
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Berhasil!',
-                        text: '{{ session('success') }}',
-                        timer: 2000,
-                        showConfirmButton: false
-                    });
-                </script>
+            <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+            <script>
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: '{{ session('
+                    success ') }}',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            </script>
             @endif
 
             <div class="mb-4 flex justify-between items-center">
@@ -30,29 +31,30 @@
                 </a>
             </div>
 
-            <table class="w-full border-collapse border border-gray-300">
-                <thead>
-                    <tr class="bg-gray-100">
-                        <th class="border border-gray-300 px-4 py-2">No</th>
-                        <th class="border border-gray-300 px-4 py-2">No Jenis Surat</th>
-                        <th class="border border-gray-300 px-4 py-2">Nama Surat</th>
-                        <th class="border border-gray-300 px-4 py-2">Jenis Pengguna</th>
-                        <th class="border border-gray-300 px-4 py-2">Jumlah Placeholder</th>
-                        <th class="border border-gray-300 px-4 py-2">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($surats as $index => $surat)
+            <div class="overflow-x-auto">
+                <table class="min-w-full border-collapse border border-gray-300">
+                    <thead>
+                        <tr class="bg-gray-100">
+                            <th class="border border-gray-300 px-4 py-2">No</th>
+                            <th class="border border-gray-300 px-4 py-2">No Jenis Surat</th>
+                            <th class="border border-gray-300 px-4 py-2">Nama Surat</th>
+                            <th class="border border-gray-300 px-4 py-2">Jenis Pengguna</th>
+                            <th class="border border-gray-300 px-4 py-2">Jumlah Placeholder</th>
+                            <th class="border border-gray-300 px-4 py-2">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($surats as $index => $surat)
                         @php
-                            $placeholders = [];
-                            if (!empty($surat->placeholders)) {
-                                if (is_string($surat->placeholders)) {
-                                    $decoded = json_decode($surat->placeholders, true);
-                                    $placeholders = is_array($decoded) ? $decoded : [];
-                                } elseif (is_array($surat->placeholders) || $surat->placeholders instanceof \Countable) {
-                                    $placeholders = $surat->placeholders;
-                                }
-                            }
+                        $placeholders = [];
+                        if (!empty($surat->placeholders)) {
+                        if (is_string($surat->placeholders)) {
+                        $decoded = json_decode($surat->placeholders, true);
+                        $placeholders = is_array($decoded) ? $decoded : [];
+                        } elseif (is_array($surat->placeholders) || $surat->placeholders instanceof \Countable) {
+                        $placeholders = $surat->placeholders;
+                        }
+                        }
                         @endphp
 
                         <tr class="{{ $index % 2 == 0 ? 'bg-white' : 'bg-gray-50' }}">
@@ -71,46 +73,46 @@
                                 </form>
                             </td>
                         </tr>
-                    @empty
+                        @empty
                         <tr>
                             <td colspan="6" class="text-center py-4">Data tidak ditemukan.</td>
                         </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                        @endforelse
+                    </tbody>
+                </table>
 
-            <div class="mt-4">
-                {{ $surats->links() }}
+                <div class="mt-4">
+                    {{ $surats->links() }}
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const deleteButtons = document.querySelectorAll('.btn-delete');
+        <!-- SweetAlert2 -->
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const deleteButtons = document.querySelectorAll('.btn-delete');
 
-            deleteButtons.forEach(button => {
-                button.addEventListener('click', function () {
-                    const suratId = this.getAttribute('data-id');
+                deleteButtons.forEach(button => {
+                    button.addEventListener('click', function() {
+                        const suratId = this.getAttribute('data-id');
 
-                    Swal.fire({
-                        title: 'Yakin ingin menghapus?',
-                        text: "Data ini tidak bisa dikembalikan!",
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#d33',
-                        cancelButtonColor: '#3085d6',
-                        confirmButtonText: 'Ya, hapus!',
-                        cancelButtonText: 'Batal'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            document.getElementById(`delete-form-${suratId}`).submit();
-                        }
+                        Swal.fire({
+                            title: 'Yakin ingin menghapus?',
+                            text: "Data ini tidak bisa dikembalikan!",
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#d33',
+                            cancelButtonColor: '#3085d6',
+                            confirmButtonText: 'Ya, hapus!',
+                            cancelButtonText: 'Batal'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                document.getElementById(`delete-form-${suratId}`).submit();
+                            }
+                        });
                     });
                 });
             });
-        });
-    </script>
+        </script>
 </x-app-layout>
