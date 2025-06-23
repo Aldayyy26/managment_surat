@@ -43,54 +43,57 @@
                     </div>
                     @endif
 
-                    <table class="min-w-full table-auto border-collapse border border-gray-300">
-                        <thead>
-                            <tr class="bg-gray-100 text-gray-700">
-                                <th class="border border-gray-300 px-4 py-2 text-left">No</th>
-                                <th class="border border-gray-300 px-4 py-2 text-left">Tanggal</th>
-                                <th class="border border-gray-300 px-4 py-2 text-left">Judul Surat</th>
-                                <th class="border border-gray-300 px-4 py-2 text-left">Status</th>
-                                <th class="border border-gray-300 px-4 py-2 text-left">Catatan Penolakan</th>
-                                <th class="border border-gray-300 px-4 py-2 text-left">Aksi</th>
-                            </tr>
-                        </thead>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full table-auto border-collapse border border-gray-300">
+                            <thead>
+                                <tr class="bg-gray-100 text-gray-700">
+                                    <th class="border border-gray-300 px-4 py-2 text-left">No</th>
+                                    <th class="border border-gray-300 px-4 py-2 text-left">Tanggal</th>
+                                    <th class="border border-gray-300 px-4 py-2 text-left">Judul Surat</th>
+                                    <th class="border border-gray-300 px-4 py-2 text-left">Status</th>
+                                    <th class="border border-gray-300 px-4 py-2 text-left">Catatan Penolakan</th>
+                                    <th class="border border-gray-300 px-4 py-2 text-left">Aksi</th>
+                                </tr>
+                            </thead>
 
-                        <tbody>
-                            @foreach($pengajuanSurats as $index => $pengajuan)
-                            <tr class="hover:bg-gray-50">
-                                <td class="border border-gray-300 px-4 py-2">{{ $index + 1 }}</td>
-                                <td class="border border-gray-300 px-4 py-2">{{ $pengajuan->created_at->format('d-m-Y') }}</td>
-                                <td class="border border-gray-300 px-4 py-2">{{ $pengajuan->template->nama_surat }}</td>
-                                <td class="border border-gray-300 px-4 py-2">{{ ucfirst($pengajuan->status) }}</td>
-                                <td class="border border-gray-300 px-4 py-2 text-sm text-red-700">
-                                    @if($pengajuan->status == 'ditolak' && $pengajuan->catatan_penolakan)
-                                    {{ $pengajuan->catatan_penolakan }}
-                                    @else
-                                    -
-                                    @endif
-                                </td>
-                                <td class="border border-gray-300 px-4 py-2">
-                                    <div class="flex flex-col space-y-2">
-                                        @if($pengajuan->status == 'proses')
-                                        <a href="{{ route('pengajuan_surat.edit', $pengajuan->id) }}" class="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600">
-                                            Edit
-                                        </a>
+                            <tbody>
+                                @foreach($pengajuanSurats as $index => $pengajuan)
+                                <tr class="hover:bg-gray-50">
+                                    <td class="border border-gray-300 px-4 py-2">{{ $index + 1 }}</td>
+                                    <td class="border border-gray-300 px-4 py-2">{{ $pengajuan->created_at->format('d-m-Y') }}</td>
+                                    <td class="border border-gray-300 px-4 py-2">{{ $pengajuan->template->nama_surat }}</td>
+                                    <td class="border border-gray-300 px-4 py-2">{{ ucfirst($pengajuan->status) }}</td>
+                                    <td class="border border-gray-300 px-4 py-2 text-sm text-red-700">
+                                        @if($pengajuan->status == 'ditolak' && $pengajuan->catatan_penolakan)
+                                        {{ $pengajuan->catatan_penolakan }}
+                                        @else
+                                        -
                                         @endif
+                                    </td>
+                                    <td class="border border-gray-300 px-4 py-2">
+                                        <div class="flex flex-col space-y-2">
+                                            @if($pengajuan->status == 'proses')
+                                            <a href="{{ route('pengajuan_surat.edit', $pengajuan->id) }}" class="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600">
+                                                Edit
+                                            </a>
+                                            @endif
 
-                                        @if($pengajuan->status == 'diterima')
-                                        <a href="{{ route('pengajuan_surat.download', $pengajuan->id) }}" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">
-                                            Download
-                                        </a>
-                                        @endif
-                                    </div>
-                                </td>
-                            </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-
+                                            @if($pengajuan->status == 'diterima')
+                                            <a href="{{ route('pengajuan_surat.download', $pengajuan->id) }}" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">
+                                                Download
+                                            </a>
+                                            @endif
+                                        </div>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
+    </div>
+    </div>
     </div>
 </x-app-layout>

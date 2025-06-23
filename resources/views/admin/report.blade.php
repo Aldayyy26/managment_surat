@@ -61,40 +61,43 @@
                     </div>
                     @endif
 
-                    <table class="min-w-full table-auto border-collapse border border-gray-300">
-                        <thead>
-                            <tr class="bg-gray-100 text-gray-700">
-                                <th class="border border-gray-300 px-4 py-2 text-left">No</th>
-                                <th class="border border-gray-300 px-4 py-2 text-left">Tanggal</th>
-                                <th class="border border-gray-300 px-4 py-2 text-left">Judul Surat</th>
-                                <th class="border border-gray-300 px-4 py-2 text-left">Status</th>
-                                <th class="border border-gray-300 px-4 py-2 text-left">Pengaju</th>
-                                <th class="border border-gray-300 px-4 py-2 text-left">Isi Surat</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($pengajuanSurats as $index => $surat)
-                            <tr class="hover:bg-gray-50">
-                                <td class="border border-gray-300 px-4 py-2">{{ $index + 1 }}</td>
-                                <td class="border border-gray-300 px-4 py-2">{{ $surat->created_at->format('d-m-Y') }}</td>
-                                <td class="border border-gray-300 px-4 py-2">{{ $surat->template->nama_surat }}</td>
-                                <td class="border border-gray-300 px-4 py-2">{{ ucfirst($surat->status) }}</td>
-                                <td class="border border-gray-300 px-4 py-2">{{ $surat->user->name ?? '-' }}</td>
-                                <td class="border border-gray-300 px-4 py-2">
-                                    {{ Str::limit(implode(', ', json_decode($surat->konten, true)), 50, '...') }}
-                                    <button class="text-blue-500 underline text-sm"
-                                        onclick="previewPdf('{{ route('pengajuan_surat.preview', $surat->id) }}')">
-                                        Lihat Detail
-                                    </button>
-                                </td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="6" class="text-center py-4 text-gray-500">Tidak ada data pengajuan surat.</td>
-                            </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+                    {{-- Table wrapper untuk responsif --}}
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full table-auto border-collapse border border-gray-300">
+                            <thead>
+                                <tr class="bg-gray-100 text-gray-700">
+                                    <th class="border border-gray-300 px-4 py-2 text-left">No</th>
+                                    <th class="border border-gray-300 px-4 py-2 text-left">Tanggal</th>
+                                    <th class="border border-gray-300 px-4 py-2 text-left">Judul Surat</th>
+                                    <th class="border border-gray-300 px-4 py-2 text-left">Status</th>
+                                    <th class="border border-gray-300 px-4 py-2 text-left">Pengaju</th>
+                                    <th class="border border-gray-300 px-4 py-2 text-left">Isi Surat</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($pengajuanSurats as $index => $surat)
+                                <tr class="hover:bg-gray-50">
+                                    <td class="border border-gray-300 px-4 py-2">{{ $index + 1 }}</td>
+                                    <td class="border border-gray-300 px-4 py-2">{{ $surat->created_at->format('d-m-Y') }}</td>
+                                    <td class="border border-gray-300 px-4 py-2">{{ $surat->template->nama_surat }}</td>
+                                    <td class="border border-gray-300 px-4 py-2">{{ ucfirst($surat->status) }}</td>
+                                    <td class="border border-gray-300 px-4 py-2">{{ $surat->user->name ?? '-' }}</td>
+                                    <td class="border border-gray-300 px-4 py-2">
+                                        {{ Str::limit(implode(', ', json_decode($surat->konten, true)), 50, '...') }}
+                                        <button class="text-blue-500 underline text-sm"
+                                            onclick="previewPdf('{{ route('pengajuan_surat.preview', $surat->id) }}')">
+                                            Lihat Detail
+                                        </button>
+                                    </td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="6" class="text-center py-4 text-gray-500">Tidak ada data pengajuan surat.</td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
 
                     {{-- Pagination --}}
                     <div class="mt-4">
