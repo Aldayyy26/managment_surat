@@ -40,10 +40,12 @@
                                 Edit
                             </a>
 
-                            <form action="{{ route('stempels.destroy', $stempel->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus?')">
+                            <form id="delete-form-{{ $stempel->id }}" action="{{ route('stempels.destroy', $stempel->id) }}" method="POST">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
+                                <button type="button"
+                                    onclick="confirmDelete({{ $stempel->id }})"
+                                    class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
                                     Hapus
                                 </button>
                             </form>
@@ -55,4 +57,26 @@
             </div>
         </div>
     </div>
+
+    {{-- SweetAlert2 CDN --}}
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    {{-- SweetAlert2 Delete Confirmation --}}
+    <script>
+        function confirmDelete(id) {
+            Swal.fire({
+                title: 'Yakin ingin menghapus?',
+                text: "Data tidak bisa dikembalikan setelah dihapus!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e3342f',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Ya, hapus!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById(`delete-form-${id}`).submit();
+                }
+            });
+        }
+    </script>
 </x-app-layout>
